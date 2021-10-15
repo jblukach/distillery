@@ -58,6 +58,14 @@ class DistilleryStack(cdk.Stack):
             non_key_attributes = ['created']
         )
 
+        distillerydb = _ssm.StringParameter(
+            self, 'distillerydb',
+            description = 'Distillery DynamoDB Table',
+            parameter_name = '/distillery/dynamodb/table',
+            string_value = table.table_name,
+            tier = _ssm.ParameterTier.STANDARD,
+        )
+
         role = _iam.Role(
             self, 'role',
             assumed_by = _iam.ServicePrincipal(
@@ -103,7 +111,7 @@ class DistilleryStack(cdk.Stack):
                 DYNAMODB_TABLE = table.table_name,
                 SSM_PARAMETER = awstracker.parameter_name
             ),
-            memory_size = 128,
+            memory_size = 128
         )
 
         awslogs = _logs.LogGroup(
