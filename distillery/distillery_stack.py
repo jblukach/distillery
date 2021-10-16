@@ -83,6 +83,7 @@ class DistilleryStack(cdk.Stack):
             _iam.PolicyStatement(
                 actions = [
                     'dynamodb:PutItem',
+                    'dynamodb:Query',
                     'ssm:GetParameter',
                     'ssm:PutParameter',
                 ],
@@ -90,6 +91,29 @@ class DistilleryStack(cdk.Stack):
                     '*'
                 ]
             )
+        )
+
+### SEARCH ###
+
+        search = _lambda.Function(
+            self, 'search',
+            runtime = _lambda.Runtime.PYTHON_3_9,
+            code = _lambda.Code.asset('search'),
+            handler = 'search.handler',
+            role = role,
+            environment = dict(
+                DYNAMODB_TABLE = table.table_name
+            ),
+            architecture = _lambda.Architecture.ARM_64,
+            timeout = cdk.Duration.seconds(30),
+            memory_size = 128
+        )
+
+        searchlogs = _logs.LogGroup(
+            self, 'searchlogs',
+            log_group_name = '/aws/lambda/'+search.function_name,
+            retention = _logs.RetentionDays.INFINITE,
+            removal_policy = cdk.RemovalPolicy.DESTROY
         )
 
 ### AWS ###
