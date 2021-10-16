@@ -8,6 +8,37 @@ from boto3.dynamodb.conditions import Key
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
+def get_slots(intent_request):
+    return intent_request['sessionState']['intent']['slots']
+    
+def get_slot(intent_request, slotName):
+    slots = get_slots(intent_request)
+    if slots is not None and slotName in slots and slots[slotName] is not None:
+        return slots[slotName]['value']['interpretedValue']
+    else:
+        return None    
+
+def get_session_attributes(intent_request):
+    sessionState = intent_request['sessionState']
+    if 'sessionAttributes' in sessionState:
+        return sessionState['sessionAttributes']
+    return {}
+
+def close(intent_request, session_attributes, fulfillment_state, message):
+    intent_request['sessionState']['intent']['state'] = fulfillment_state
+    return {
+        'sessionState': {
+            'sessionAttributes': session_attributes,
+            'dialogAction': {
+                'type': 'Close'
+            },
+            'intent': intent_request['sessionState']['intent']
+        },
+        'messages': [message],
+        'sessionId': intent_request['sessionId'],
+        'requestAttributes': intent_request['requestAttributes'] if 'requestAttributes' in intent_request else None
+    }
+
 def handler(event, context):
     
     logger.info(event)
@@ -15,8 +46,9 @@ def handler(event, context):
     dynamodb = boto3.resource('dynamodb')
     table = dynamodb.Table(os.environ['DYNAMODB_TABLE'])
     
-    #ipaddr = event
-    ipaddr = '104.255.59.118'
+    session_attributes = get_session_attributes(event)
+    slots = get_slots(event)
+    ipaddr = get_slot(event, 'cidrip')
 
     try:
         
@@ -123,8 +155,12 @@ def handler(event, context):
         
         msg = 'Invalid IP Address'
         pass
-        
-    return {
-        'statusCode': 200,
-        'body': json.dumps(msg)
+
+    message =  {
+        'contentType': 'PlainText',
+        'content': str(msg)
     }
+    
+    fulfillment_state = "Fulfilled"
+    
+    return close(event, session_attributes, fulfillment_state, message)
