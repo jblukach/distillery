@@ -93,7 +93,7 @@ class DistilleryStack(cdk.Stack):
             )
         )
 
-### SEARCH ###
+### SEARCH LEX V2 ###
 
         search = _lambda.Function(
             self, 'search',
@@ -116,7 +116,30 @@ class DistilleryStack(cdk.Stack):
             removal_policy = cdk.RemovalPolicy.DESTROY
         )
 
-### AWS ###
+### SEARCH LEX V1 ###
+
+        oldsearch = _lambda.Function(
+            self, 'oldsearch',
+            runtime = _lambda.Runtime.PYTHON_3_9,
+            code = _lambda.Code.asset('oldsearch'),
+            handler = 'oldsearch.handler',
+            role = role,
+            environment = dict(
+                DYNAMODB_TABLE = table.table_name
+            ),
+            architecture = _lambda.Architecture.ARM_64,
+            timeout = cdk.Duration.seconds(30),
+            memory_size = 128
+        )
+
+        oldsearchlogs = _logs.LogGroup(
+            self, 'oldsearchlogs',
+            log_group_name = '/aws/lambda/'+oldsearch.function_name,
+            retention = _logs.RetentionDays.INFINITE,
+            removal_policy = cdk.RemovalPolicy.DESTROY
+        )
+
+### AWS CIDRS ###
 
         awstracker = _ssm.StringParameter(
             self, 'awstracker',
