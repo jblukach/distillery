@@ -180,4 +180,86 @@ class DistilleryStack(cdk.Stack):
         )
         awsevent.add_target(_targets.LambdaFunction(awscompute))
 
+### GOOGLE CIDRS ###
+
+        googletracker = _ssm.StringParameter(
+            self, 'googletracker',
+            description = 'Google Distillery Tracker',
+            parameter_name = '/distillery/tracker/google',
+            string_value = 'EMPTY',
+            tier = _ssm.ParameterTier.STANDARD,
+        )
+
+        googlecompute = _lambda.DockerImageFunction(
+            self, 'googlecompute',
+            code = _lambda.DockerImageCode.from_image_asset('cidr/google'),
+            timeout = cdk.Duration.seconds(900),
+            role = role,
+            environment = dict(
+                DYNAMODB_TABLE = table.table_name,
+                SSM_PARAMETER = googletracker.parameter_name
+            ),
+            memory_size = 128
+        )
+
+        googlelogs = _logs.LogGroup(
+            self, 'googlelogs',
+            log_group_name = '/aws/lambda/'+googlecompute.function_name,
+            retention = _logs.RetentionDays.ONE_DAY,
+            removal_policy = cdk.RemovalPolicy.DESTROY
+        )
+
+        googleevent = _events.Rule(
+            self, 'googleevent',
+            schedule=_events.Schedule.cron(
+                minute='0',
+                hour='*',
+                month='*',
+                week_day='*',
+                year='*'
+            )
+        )
+        googleevent.add_target(_targets.LambdaFunction(googlecompute))
+        
+### GCP CIDRS ###
+
+        gcptracker = _ssm.StringParameter(
+            self, 'gcptracker',
+            description = 'GCP Distillery Tracker',
+            parameter_name = '/distillery/tracker/gcp',
+            string_value = 'EMPTY',
+            tier = _ssm.ParameterTier.STANDARD,
+        )
+
+        gcpcompute = _lambda.DockerImageFunction(
+            self, 'gcpcompute',
+            code = _lambda.DockerImageCode.from_image_asset('cidr/gcp'),
+            timeout = cdk.Duration.seconds(900),
+            role = role,
+            environment = dict(
+                DYNAMODB_TABLE = table.table_name,
+                SSM_PARAMETER = gcptracker.parameter_name
+            ),
+            memory_size = 128
+        )
+
+        gcplogs = _logs.LogGroup(
+            self, 'gcplogs',
+            log_group_name = '/aws/lambda/'+gcpcompute.function_name,
+            retention = _logs.RetentionDays.ONE_DAY,
+            removal_policy = cdk.RemovalPolicy.DESTROY
+        )
+
+        gcpevent = _events.Rule(
+            self, 'gcpevent',
+            schedule=_events.Schedule.cron(
+                minute='0',
+                hour='*',
+                month='*',
+                week_day='*',
+                year='*'
+            )
+        )
+        gcpevent.add_target(_targets.LambdaFunction(gcpcompute))
+
 ###

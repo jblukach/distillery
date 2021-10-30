@@ -104,8 +104,7 @@ def handler(event, context):
             theresults["cidrs"] = []
             for line in matches:
                 parsed = line.split('#')
-                linedict = {'cloud': parsed[0], 'service': parsed[1], 'region': parsed[2], 'cidr': parsed[3], 'lastseen': parsed[4]}
-                theresults["cidrs"].append(linedict)
+                theresults["cidrs"].append(parsed)
             
             msg = theresults
             
@@ -146,8 +145,7 @@ def handler(event, context):
             theresults["cidrs"] = []
             for line in matches:
                 parsed = line.split('#')
-                linedict = {'cloud': parsed[0], 'service': parsed[1], 'region': parsed[2], 'cidr': parsed[3], 'lastseen': parsed[4]}
-                theresults["cidrs"].append(linedict)
+                theresults["cidrs"].append(parsed)
                 
             msg = theresults
             
