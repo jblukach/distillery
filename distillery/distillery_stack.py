@@ -168,6 +168,14 @@ class DistilleryStack(cdk.Stack):
             removal_policy = cdk.RemovalPolicy.DESTROY
         )
 
+        awsmonitor = _ssm.StringParameter(
+            self, 'awsmonitor',
+            description = 'AWS Distillery Monitor',
+            parameter_name = '/distillery/monitor/aws',
+            string_value = '/aws/lambda/'+awscompute.function_name,
+            tier = _ssm.ParameterTier.STANDARD,
+        )
+
         awsevent = _events.Rule(
             self, 'awsevent',
             schedule=_events.Schedule.cron(
@@ -209,6 +217,14 @@ class DistilleryStack(cdk.Stack):
             removal_policy = cdk.RemovalPolicy.DESTROY
         )
 
+        googlemonitor = _ssm.StringParameter(
+            self, 'googlemonitor',
+            description = 'Google Distillery Monitor',
+            parameter_name = '/distillery/monitor/google',
+            string_value = '/aws/lambda/'+googlecompute.function_name,
+            tier = _ssm.ParameterTier.STANDARD,
+        )
+
         googleevent = _events.Rule(
             self, 'googleevent',
             schedule=_events.Schedule.cron(
@@ -248,6 +264,14 @@ class DistilleryStack(cdk.Stack):
             log_group_name = '/aws/lambda/'+gcpcompute.function_name,
             retention = _logs.RetentionDays.ONE_DAY,
             removal_policy = cdk.RemovalPolicy.DESTROY
+        )
+
+        gcpmonitor = _ssm.StringParameter(
+            self, 'gcpmonitor',
+            description = 'GCP Distillery Monitor',
+            parameter_name = '/distillery/monitor/gcp',
+            string_value = '/aws/lambda/'+gcpcompute.function_name,
+            tier = _ssm.ParameterTier.STANDARD,
         )
 
         gcpevent = _events.Rule(
