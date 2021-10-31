@@ -10,8 +10,6 @@ logger.setLevel(logging.INFO)
 
 def lambdaHandler(event, context):
     
-    logger.info(event)
-    
     dynamodb = boto3.resource('dynamodb')
     table = dynamodb.Table(os.environ['DYNAMODB_TABLE'])
     
@@ -79,6 +77,7 @@ def lambdaHandler(event, context):
                     )
                 except:
                     pass
+            logger.info('GCP IP Ranges Updated')
             response = client.put_parameter(Name=os.environ['SSM_PARAMETER'],
                                             Value=output['syncToken'],
                                             Type='String',

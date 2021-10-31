@@ -286,4 +286,53 @@ class DistilleryStack(cdk.Stack):
         )
         gcpevent.add_target(_targets.LambdaFunction(gcpcompute))
 
+### AZURE CIDRS ###
+
+        azuretracker = _ssm.StringParameter(
+            self, 'azuretracker',
+            description = 'Azure Distillery Tracker',
+            parameter_name = '/distillery/tracker/azure',
+            string_value = 'EMPTY',
+            tier = _ssm.ParameterTier.STANDARD,
+        )
+
+        azurecompute = _lambda.DockerImageFunction(
+            self, 'azurecompute',
+            code = _lambda.DockerImageCode.from_image_asset('cidr/azure'),
+            timeout = cdk.Duration.seconds(900),
+            role = role,
+            environment = dict(
+                DYNAMODB_TABLE = table.table_name,
+                SSM_PARAMETER = azuretracker.parameter_name
+            ),
+            memory_size = 256
+        )
+
+        azurelogs = _logs.LogGroup(
+            self, 'azurelogs',
+            log_group_name = '/aws/lambda/'+azurecompute.function_name,
+            retention = _logs.RetentionDays.ONE_DAY,
+            removal_policy = cdk.RemovalPolicy.DESTROY
+        )
+
+        azuremonitor = _ssm.StringParameter(
+            self, 'azuremonitor',
+            description = 'Azure Distillery Monitor',
+            parameter_name = '/distillery/monitor/azure',
+            string_value = '/aws/lambda/'+azurecompute.function_name,
+            tier = _ssm.ParameterTier.STANDARD,
+        )
+
+        azureevent = _events.Rule(
+            self, 'azureevent',
+            schedule=_events.Schedule.cron(
+                minute='0',
+                hour='*',
+                month='*',
+                week_day='*',
+                year='*'
+            )
+        )
+        azureevent.add_target(_targets.LambdaFunction(azurecompute))
+
 ###
