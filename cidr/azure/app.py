@@ -31,7 +31,7 @@ def lambdaHandler(event, context):
 
     if r.status_code == 200:
         output = r.json()
-        if prevtoken != output['changeNumber']:
+        if prevtoken != str(output['changeNumber']):
             logger.info('Updating Azure IP Ranges')
             for cidr in output['values']:
                 for ip in cidr['properties']['addressPrefixes']:

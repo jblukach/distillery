@@ -305,7 +305,7 @@ class DistilleryStack(cdk.Stack):
                 DYNAMODB_TABLE = table.table_name,
                 SSM_PARAMETER = azuretracker.parameter_name
             ),
-            memory_size = 256
+            memory_size = 128
         )
 
         azurelogs = _logs.LogGroup(
