@@ -81,9 +81,12 @@ def handler(event, context):
                     IndexName='firstip',KeyConditionExpression=Key('pk').eq('IPv4#') & Key('firstip').lte(intip),
                     ExclusiveStartKey=first['LastEvaluatedKey']
                 )
-                firstdata.update(first['Items'])
+                try:
+                    firstdata.update(first['Items'])
+                except:
+                    pass
             for item in firstdata:
-                firstlist.append(item['sk']+'#'+item['created'])
+                firstlist.append(item['sk']+'#'+str(item['created']))
                
             lastlist = []
             last = table.query(
@@ -95,9 +98,12 @@ def handler(event, context):
                     IndexName='lastip',KeyConditionExpression=Key('pk').eq('IPv4#') & Key('lastip').gte(intip),
                     ExclusiveStartKey=last['LastEvaluatedKey']
                 )
-                lastdata.update(last['Items'])
+                try:
+                    lastdata.update(last['Items'])
+                except:
+                    pass
             for item in lastdata:
-                lastlist.append(item['sk']+'#'+item['created'])
+                lastlist.append(item['sk']+'#'+str(item['created']))
             
             matches = set(firstlist) & set(lastlist)
             theresults = {}
@@ -122,9 +128,12 @@ def handler(event, context):
                     IndexName='firstip',KeyConditionExpression=Key('pk').eq('IPv6#') & Key('firstip').lte(intip),
                     ExclusiveStartKey=first['LastEvaluatedKey']
                 )
-                firstdata.update(first['Items'])
+                try:
+                    firstdata.update(first['Items'])
+                except:
+                    pass
             for item in firstdata:
-                firstlist.append(item['sk']+'#'+item['created'])
+                firstlist.append(item['sk']+'#'+str(item['created']))
                
             lastlist = []
             last = table.query(
@@ -136,9 +145,12 @@ def handler(event, context):
                     IndexName='lastip',KeyConditionExpression=Key('pk').eq('IPv6#') & Key('lastip').gte(intip),
                     ExclusiveStartKey=last['LastEvaluatedKey']
                 )
-                lastdata.update(last['Items'])
+                try:
+                    lastdata.update(last['Items'])
+                except:
+                    pass
             for item in lastdata:
-                lastlist.append(item['sk']+'#'+item['created'])
+                lastlist.append(item['sk']+'#'+str(item['created']))
             
             matches = set(firstlist) & set(lastlist)
             theresults = {}

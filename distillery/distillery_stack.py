@@ -106,7 +106,7 @@ class DistilleryStack(cdk.Stack):
             ),
             architecture = _lambda.Architecture.ARM_64,
             timeout = cdk.Duration.seconds(30),
-            memory_size = 128
+            memory_size = 512
         )
 
         searchlogs = _logs.LogGroup(
@@ -129,7 +129,7 @@ class DistilleryStack(cdk.Stack):
             ),
             architecture = _lambda.Architecture.ARM_64,
             timeout = cdk.Duration.seconds(30),
-            memory_size = 128
+            memory_size = 512
         )
 
         oldsearchlogs = _logs.LogGroup(
@@ -305,7 +305,7 @@ class DistilleryStack(cdk.Stack):
                 DYNAMODB_TABLE = table.table_name,
                 SSM_PARAMETER = azuretracker.parameter_name
             ),
-            memory_size = 128
+            memory_size = 512
         )
 
         azurelogs = _logs.LogGroup(
