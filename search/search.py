@@ -73,35 +73,33 @@ def handler(event, context):
             
             firstlist = []
             first = table.query(
-                IndexName='firstip',KeyConditionExpression=Key('pk').eq('IPv4#') & Key('firstip').lte(intip)
+                IndexName = 'firstip',
+                KeyConditionExpression = Key('pk').eq('IPv4#') & Key('firstip').lte(intip)
             )
             firstdata = first['Items']
             while 'LastEvaluatedKey' in first:
                 first = table.query(
-                    IndexName='firstip',KeyConditionExpression=Key('pk').eq('IPv4#') & Key('firstip').lte(intip),
-                    ExclusiveStartKey=first['LastEvaluatedKey']
+                    IndexName = 'firstip',
+                    KeyConditionExpression = Key('pk').eq('IPv4#') & Key('firstip').lte(intip),
+                    ExclusiveStartKey = first['LastEvaluatedKey']
                 )
-                try:
-                    firstdata.update(first['Items'])
-                except:
-                    pass
+                firstdata.extend(first['Items'])
             for item in firstdata:
                 firstlist.append(item['sk']+'#'+str(item['created']))
                
             lastlist = []
             last = table.query(
-                IndexName='lastip',KeyConditionExpression=Key('pk').eq('IPv4#') & Key('lastip').gte(intip)
+                IndexName = 'lastip',
+                KeyConditionExpression = Key('pk').eq('IPv4#') & Key('lastip').gte(intip)
             )
             lastdata = last['Items']
             while 'LastEvaluatedKey' in last:
                 last = table.query(
-                    IndexName='lastip',KeyConditionExpression=Key('pk').eq('IPv4#') & Key('lastip').gte(intip),
-                    ExclusiveStartKey=last['LastEvaluatedKey']
+                    IndexName = 'lastip',
+                    KeyConditionExpression = Key('pk').eq('IPv4#') & Key('lastip').gte(intip),
+                    ExclusiveStartKey = last['LastEvaluatedKey']
                 )
-                try:
-                    lastdata.update(last['Items'])
-                except:
-                    pass
+                lastdata.extend(last['Items'])
             for item in lastdata:
                 lastlist.append(item['sk']+'#'+str(item['created']))
             
@@ -120,35 +118,33 @@ def handler(event, context):
             
             firstlist = []
             first = table.query(
-                IndexName='firstip',KeyConditionExpression=Key('pk').eq('IPv6#') & Key('firstip').lte(intip)
+                IndexName = 'firstip',
+                KeyConditionExpression = Key('pk').eq('IPv6#') & Key('firstip').lte(intip)
             )
             firstdata = first['Items']
             while 'LastEvaluatedKey' in first:
                 first = table.query(
-                    IndexName='firstip',KeyConditionExpression=Key('pk').eq('IPv6#') & Key('firstip').lte(intip),
-                    ExclusiveStartKey=first['LastEvaluatedKey']
+                    IndexName = 'firstip',
+                    KeyConditionExpression = Key('pk').eq('IPv6#') & Key('firstip').lte(intip),
+                    ExclusiveStartKey = first['LastEvaluatedKey']
                 )
-                try:
-                    firstdata.update(first['Items'])
-                except:
-                    pass
+                firstdata.extend(first['Items'])
             for item in firstdata:
                 firstlist.append(item['sk']+'#'+str(item['created']))
                
             lastlist = []
             last = table.query(
-                IndexName='lastip',KeyConditionExpression=Key('pk').eq('IPv6#') & Key('lastip').gte(intip)
+                IndexName = 'lastip',
+                KeyConditionExpression = Key('pk').eq('IPv6#') & Key('lastip').gte(intip)
             )
             lastdata = last['Items']
             while 'LastEvaluatedKey' in last:
                 last = table.query(
-                    IndexName='lastip',KeyConditionExpression=Key('pk').eq('IPv6#') & Key('lastip').gte(intip),
-                    ExclusiveStartKey=last['LastEvaluatedKey']
+                    IndexName = 'lastip',
+                    KeyConditionExpression = Key('pk').eq('IPv6#') & Key('lastip').gte(intip),
+                    ExclusiveStartKey = last['LastEvaluatedKey']
                 )
-                try:
-                    lastdata.update(last['Items'])
-                except:
-                    pass
+                lastdata.extend(last['Items'])
             for item in lastdata:
                 lastlist.append(item['sk']+'#'+str(item['created']))
             
