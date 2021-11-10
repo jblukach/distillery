@@ -16,22 +16,25 @@ def lambdaHandler(event, context):
     client = boto3.client('ssm')
     response = client.get_parameter(Name=os.environ['SSM_PARAMETER'])
     prevtoken = response['Parameter']['Value']
-    
-    r = requests.get('https://www.cloudflare.com/ips-v4')
+
+    r1 = requests.get('https://www.cloudflare.com/ips-v4')
+    r2 = requests.get('https://www.cloudflare.com/ips-v6')
+
     logger.info('Download Status Code: '+str(r.status_code))
     
-    if r.status_code == 200:
-        output = r.json()
+    if r1.status_code and r2.status_code == 200:
+        output = r1.text + r2.text
+        cloudflare = list(output.splitlines())
         if prevtoken != output['syncToken']:
             logger.info('Updating Cloudflare IP Ranges')
-            for cidr in output['prefixes']:
+            for cidr in cloudflare:
                 try:
-                    sortkey = 'Cloudflare#'+cidr['ipv4Prefix']
+                    sortkey = 'Cloudflare#'+cidr
                     hostmask = cidr['ipv4Prefix'].split('/')
                     iptype = ipaddress.ip_address(hostmask[0])
                     nametype = 'IPv'+str(iptype.version)+'#'
-                    iprange = cidr['ipv4Prefix']
-                    netrange = ipaddress.IPv4Network(cidr['ipv4Prefix'])
+                    iprange = cidr
+                    netrange = ipaddress.IPv4Network(cidr)
                     first, last = netrange[0], netrange[-1]
                     firstip = int(ipaddress.IPv4Address(first))
                     lastip = int(ipaddress.IPv4Address(last))
@@ -48,12 +51,12 @@ def lambdaHandler(event, context):
                 except:
                     pass
                 try:
-                    sortkey = 'Cloudflare#'+cidr['ipv6Prefix']
-                    hostmask = cidr['ipv6Prefix'].split('/')
+                    sortkey = 'Cloudflare#'+cidr
+                    hostmask = cidr.split('/')
                     iptype = ipaddress.ip_address(hostmask[0])
                     nametype = 'IPv'+str(iptype.version)+'#'
-                    iprange = cidr['ipv6Prefix']
-                    netrange = ipaddress.IPv6Network(cidr['ipv6Prefix'])
+                    iprange = cidr
+                    netrange = ipaddress.IPv6Network(cidr)
                     first, last = netrange[0], netrange[-1]
                     firstip = int(ipaddress.IPv6Address(first))
                     lastip = int(ipaddress.IPv6Address(last))
