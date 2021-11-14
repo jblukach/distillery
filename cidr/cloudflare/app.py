@@ -43,6 +43,7 @@ def lambdaHandler(event, context):
                         'pk': nametype,
                         'sk': sortkey,
                         'cidr': iprange,
+                        'created': '-',
                         'firstip': firstip,
                         'lastip': lastip
                     } 
@@ -81,6 +82,7 @@ def lambdaHandler(event, context):
                         'pk': nametype,
                         'sk': sortkey,
                         'cidr': iprange,
+                        'created': '-',
                         'firstip': firstip,
                         'lastip': lastip
                     } 
