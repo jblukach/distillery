@@ -335,4 +335,53 @@ class DistilleryStack(cdk.Stack):
         )
         azureevent.add_target(_targets.LambdaFunction(azurecompute))
 
+### CLOUDFLARE CIDRS ###
+
+        cloudflaretracker = _ssm.StringParameter(
+            self, 'cloudflaretracker',
+            description = 'Cloud Flare Distillery Tracker',
+            parameter_name = '/distillery/tracker/cloudflare',
+            string_value = 'EMPTY',
+            tier = _ssm.ParameterTier.STANDARD,
+        )
+
+        cloudflarecompute = _lambda.DockerImageFunction(
+            self, 'cloudflarecompute',
+            code = _lambda.DockerImageCode.from_image_asset('cidr/cloudflare'),
+            timeout = cdk.Duration.seconds(900),
+            role = role,
+            environment = dict(
+                DYNAMODB_TABLE = table.table_name,
+                SSM_PARAMETER = cloudflaretracker.parameter_name
+            ),
+            memory_size = 128
+        )
+
+        cloudflarelogs = _logs.LogGroup(
+            self, 'cloudflarelogs',
+            log_group_name = '/aws/lambda/'+cloudflarecompute.function_name,
+            retention = _logs.RetentionDays.ONE_DAY,
+            removal_policy = cdk.RemovalPolicy.DESTROY
+        )
+
+        cloudflaremonitor = _ssm.StringParameter(
+            self, 'cloudflaremonitor',
+            description = 'Cloud Flare Distillery Monitor',
+            parameter_name = '/distillery/monitor/cloudflare',
+            string_value = '/aws/lambda/'+cloudflarecompute.function_name,
+            tier = _ssm.ParameterTier.STANDARD,
+        )
+
+        cloudflareevent = _events.Rule(
+            self, 'cloudflareevent',
+            schedule=_events.Schedule.cron(
+                minute='0',
+                hour='*',
+                month='*',
+                week_day='*',
+                year='*'
+            )
+        )
+        cloudflareevent.add_target(_targets.LambdaFunction(cloudflarecompute))
+
 ###
