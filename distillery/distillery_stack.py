@@ -98,7 +98,7 @@ class DistilleryStack(cdk.Stack):
         search = _lambda.Function(
             self, 'search',
             runtime = _lambda.Runtime.PYTHON_3_9,
-            code = _lambda.Code.asset('search'),
+            code = _lambda.Code.from_asset('search'),
             handler = 'search.handler',
             role = role,
             environment = dict(
@@ -121,7 +121,7 @@ class DistilleryStack(cdk.Stack):
         oldsearch = _lambda.Function(
             self, 'oldsearch',
             runtime = _lambda.Runtime.PYTHON_3_9,
-            code = _lambda.Code.asset('oldsearch'),
+            code = _lambda.Code.from_asset('oldsearch'),
             handler = 'oldsearch.handler',
             role = role,
             environment = dict(
@@ -383,5 +383,54 @@ class DistilleryStack(cdk.Stack):
             )
         )
         cloudflareevent.add_target(_targets.LambdaFunction(cloudflarecompute))
+
+### DIGITAL OCEAN CIDRS ###
+
+        dotracker = _ssm.StringParameter(
+            self, 'dotracker',
+            description = 'Digital Ocean Distillery Tracker',
+            parameter_name = '/distillery/tracker/do',
+            string_value = 'EMPTY',
+            tier = _ssm.ParameterTier.STANDARD,
+        )
+
+        docompute = _lambda.DockerImageFunction(
+            self, 'docompute',
+            code = _lambda.DockerImageCode.from_image_asset('cidr/do'),
+            timeout = cdk.Duration.seconds(900),
+            role = role,
+            environment = dict(
+                DYNAMODB_TABLE = table.table_name,
+                SSM_PARAMETER = dotracker.parameter_name
+            ),
+            memory_size = 128
+        )
+
+        dologs = _logs.LogGroup(
+            self, 'dologs',
+            log_group_name = '/aws/lambda/'+docompute.function_name,
+            retention = _logs.RetentionDays.ONE_DAY,
+            removal_policy = cdk.RemovalPolicy.DESTROY
+        )
+
+        domonitor = _ssm.StringParameter(
+            self, 'domonitor',
+            description = 'Digital Ocean Distillery Monitor',
+            parameter_name = '/distillery/monitor/do',
+            string_value = '/aws/lambda/'+docompute.function_name,
+            tier = _ssm.ParameterTier.STANDARD,
+        )
+
+        doevent = _events.Rule(
+            self, 'doevent',
+            schedule=_events.Schedule.cron(
+                minute='0',
+                hour='*',
+                month='*',
+                week_day='*',
+                year='*'
+            )
+        )
+        doevent.add_target(_targets.LambdaFunction(docompute))
 
 ###
