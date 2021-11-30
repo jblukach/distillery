@@ -158,7 +158,7 @@ class DistilleryStack(cdk.Stack):
                 DYNAMODB_TABLE = table.table_name,
                 SSM_PARAMETER = awstracker.parameter_name
             ),
-            memory_size = 128
+            memory_size = 512
         )
 
         awslogs = _logs.LogGroup(
@@ -207,7 +207,7 @@ class DistilleryStack(cdk.Stack):
                 DYNAMODB_TABLE = table.table_name,
                 SSM_PARAMETER = googletracker.parameter_name
             ),
-            memory_size = 128
+            memory_size = 512
         )
 
         googlelogs = _logs.LogGroup(
@@ -256,7 +256,7 @@ class DistilleryStack(cdk.Stack):
                 DYNAMODB_TABLE = table.table_name,
                 SSM_PARAMETER = gcptracker.parameter_name
             ),
-            memory_size = 128
+            memory_size = 512
         )
 
         gcplogs = _logs.LogGroup(
@@ -354,7 +354,7 @@ class DistilleryStack(cdk.Stack):
                 DYNAMODB_TABLE = table.table_name,
                 SSM_PARAMETER = cloudflaretracker.parameter_name
             ),
-            memory_size = 128
+            memory_size = 512
         )
 
         cloudflarelogs = _logs.LogGroup(
@@ -403,7 +403,7 @@ class DistilleryStack(cdk.Stack):
                 DYNAMODB_TABLE = table.table_name,
                 SSM_PARAMETER = dotracker.parameter_name
             ),
-            memory_size = 128
+            memory_size = 512
         )
 
         dologs = _logs.LogGroup(
