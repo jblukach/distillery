@@ -116,6 +116,14 @@ class DistilleryStack(cdk.Stack):
             removal_policy = cdk.RemovalPolicy.DESTROY
         )
 
+        searchmonitor = _ssm.StringParameter(
+            self, 'searchmonitor',
+            description = 'Search Distillery Monitor',
+            parameter_name = '/distillery/monitor/search',
+            string_value = '/aws/lambda/'+search.function_name,
+            tier = _ssm.ParameterTier.STANDARD,
+        )
+
 ### SEARCH LEX V1 ###
 
         oldsearch = _lambda.Function(
@@ -137,6 +145,14 @@ class DistilleryStack(cdk.Stack):
             log_group_name = '/aws/lambda/'+oldsearch.function_name,
             retention = _logs.RetentionDays.INFINITE,
             removal_policy = cdk.RemovalPolicy.DESTROY
+        )
+
+        oldsearchmonitor = _ssm.StringParameter(
+            self, 'oldsearchmonitor',
+            description = 'Old Search Distillery Monitor',
+            parameter_name = '/distillery/monitor/oldsearch',
+            string_value = '/aws/lambda/'+oldsearch.function_name,
+            tier = _ssm.ParameterTier.STANDARD,
         )
 
 ### AWS CIDRS ###
@@ -433,4 +449,53 @@ class DistilleryStack(cdk.Stack):
         )
         doevent.add_target(_targets.LambdaFunction(docompute))
 
+### ORACLE CIDRS ###
+
+        oracletracker = _ssm.StringParameter(
+            self, 'oracletracker',
+            description = 'Oracle Distillery Tracker',
+            parameter_name = '/distillery/tracker/oracle',
+            string_value = 'EMPTY',
+            tier = _ssm.ParameterTier.STANDARD,
+        )
+
+        oraclecompute = _lambda.DockerImageFunction(
+            self, 'oraclecompute',
+            code = _lambda.DockerImageCode.from_image_asset('cidr/oracle'),
+            timeout = cdk.Duration.seconds(900),
+            role = role,
+            environment = dict(
+                DYNAMODB_TABLE = table.table_name,
+                SSM_PARAMETER = oracletracker.parameter_name
+            ),
+            memory_size = 512
+        )
+
+        oraclelogs = _logs.LogGroup(
+            self, 'oraclelogs',
+            log_group_name = '/aws/lambda/'+oraclecompute.function_name,
+            retention = _logs.RetentionDays.ONE_DAY,
+            removal_policy = cdk.RemovalPolicy.DESTROY
+        )
+
+        oraclemonitor = _ssm.StringParameter(
+            self, 'oraclemonitor',
+            description = 'Oracle Distillery Monitor',
+            parameter_name = '/distillery/monitor/oracle',
+            string_value = '/aws/lambda/'+oraclecompute.function_name,
+            tier = _ssm.ParameterTier.STANDARD,
+        )
+
+        oracleevent = _events.Rule(
+            self, 'oracleevent',
+            schedule=_events.Schedule.cron(
+                minute='0',
+                hour='*',
+                month='*',
+                week_day='*',
+                year='*'
+            )
+        )
+        oracleevent.add_target(_targets.LambdaFunction(oraclecompute))
+        
 ###
