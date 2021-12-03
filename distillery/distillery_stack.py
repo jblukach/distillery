@@ -1,4 +1,7 @@
 from aws_cdk import (
+    Duration,
+    RemovalPolicy,
+    Stack,
     aws_dynamodb as _dynamodb,
     aws_events as _events,
     aws_events_targets as _targets,
@@ -6,13 +9,13 @@ from aws_cdk import (
     aws_lambda as _lambda,
     aws_logs as _logs,
     aws_ssm as _ssm,
-    core as cdk
 )
 
+from constructs import Construct
 
-class DistilleryStack(cdk.Stack):
+class DistilleryStack(Stack):
 
-    def __init__(self, scope: cdk.Construct, construct_id: str, **kwargs) -> None:
+    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
         table = _dynamodb.Table(
@@ -27,7 +30,7 @@ class DistilleryStack(cdk.Stack):
             },
             billing_mode = _dynamodb.BillingMode.PAY_PER_REQUEST,
             point_in_time_recovery = True,
-            removal_policy = cdk.RemovalPolicy.DESTROY
+            removal_policy = RemovalPolicy.DESTROY
         )
         
         table.add_global_secondary_index(
@@ -105,7 +108,7 @@ class DistilleryStack(cdk.Stack):
                 DYNAMODB_TABLE = table.table_name
             ),
             architecture = _lambda.Architecture.ARM_64,
-            timeout = cdk.Duration.seconds(30),
+            timeout = Duration.seconds(30),
             memory_size = 512
         )
 
@@ -113,7 +116,7 @@ class DistilleryStack(cdk.Stack):
             self, 'searchlogs',
             log_group_name = '/aws/lambda/'+search.function_name,
             retention = _logs.RetentionDays.INFINITE,
-            removal_policy = cdk.RemovalPolicy.DESTROY
+            removal_policy = RemovalPolicy.DESTROY
         )
 
         searchmonitor = _ssm.StringParameter(
@@ -136,7 +139,7 @@ class DistilleryStack(cdk.Stack):
                 DYNAMODB_TABLE = table.table_name
             ),
             architecture = _lambda.Architecture.ARM_64,
-            timeout = cdk.Duration.seconds(30),
+            timeout = Duration.seconds(30),
             memory_size = 512
         )
 
@@ -144,7 +147,7 @@ class DistilleryStack(cdk.Stack):
             self, 'oldsearchlogs',
             log_group_name = '/aws/lambda/'+oldsearch.function_name,
             retention = _logs.RetentionDays.INFINITE,
-            removal_policy = cdk.RemovalPolicy.DESTROY
+            removal_policy = RemovalPolicy.DESTROY
         )
 
         oldsearchmonitor = _ssm.StringParameter(
@@ -168,7 +171,7 @@ class DistilleryStack(cdk.Stack):
         awscompute = _lambda.DockerImageFunction(
             self, 'awscompute',
             code = _lambda.DockerImageCode.from_image_asset('cidr/aws'),
-            timeout = cdk.Duration.seconds(900),
+            timeout = Duration.seconds(900),
             role = role,
             environment = dict(
                 DYNAMODB_TABLE = table.table_name,
@@ -181,7 +184,7 @@ class DistilleryStack(cdk.Stack):
             self, 'awslogs',
             log_group_name = '/aws/lambda/'+awscompute.function_name,
             retention = _logs.RetentionDays.ONE_DAY,
-            removal_policy = cdk.RemovalPolicy.DESTROY
+            removal_policy = RemovalPolicy.DESTROY
         )
 
         awsmonitor = _ssm.StringParameter(
@@ -217,7 +220,7 @@ class DistilleryStack(cdk.Stack):
         googlecompute = _lambda.DockerImageFunction(
             self, 'googlecompute',
             code = _lambda.DockerImageCode.from_image_asset('cidr/google'),
-            timeout = cdk.Duration.seconds(900),
+            timeout = Duration.seconds(900),
             role = role,
             environment = dict(
                 DYNAMODB_TABLE = table.table_name,
@@ -230,7 +233,7 @@ class DistilleryStack(cdk.Stack):
             self, 'googlelogs',
             log_group_name = '/aws/lambda/'+googlecompute.function_name,
             retention = _logs.RetentionDays.ONE_DAY,
-            removal_policy = cdk.RemovalPolicy.DESTROY
+            removal_policy = RemovalPolicy.DESTROY
         )
 
         googlemonitor = _ssm.StringParameter(
@@ -266,7 +269,7 @@ class DistilleryStack(cdk.Stack):
         gcpcompute = _lambda.DockerImageFunction(
             self, 'gcpcompute',
             code = _lambda.DockerImageCode.from_image_asset('cidr/gcp'),
-            timeout = cdk.Duration.seconds(900),
+            timeout = Duration.seconds(900),
             role = role,
             environment = dict(
                 DYNAMODB_TABLE = table.table_name,
@@ -279,7 +282,7 @@ class DistilleryStack(cdk.Stack):
             self, 'gcplogs',
             log_group_name = '/aws/lambda/'+gcpcompute.function_name,
             retention = _logs.RetentionDays.ONE_DAY,
-            removal_policy = cdk.RemovalPolicy.DESTROY
+            removal_policy = RemovalPolicy.DESTROY
         )
 
         gcpmonitor = _ssm.StringParameter(
@@ -315,7 +318,7 @@ class DistilleryStack(cdk.Stack):
         azurecompute = _lambda.DockerImageFunction(
             self, 'azurecompute',
             code = _lambda.DockerImageCode.from_image_asset('cidr/azure'),
-            timeout = cdk.Duration.seconds(900),
+            timeout = Duration.seconds(900),
             role = role,
             environment = dict(
                 DYNAMODB_TABLE = table.table_name,
@@ -328,7 +331,7 @@ class DistilleryStack(cdk.Stack):
             self, 'azurelogs',
             log_group_name = '/aws/lambda/'+azurecompute.function_name,
             retention = _logs.RetentionDays.ONE_DAY,
-            removal_policy = cdk.RemovalPolicy.DESTROY
+            removal_policy = RemovalPolicy.DESTROY
         )
 
         azuremonitor = _ssm.StringParameter(
@@ -364,7 +367,7 @@ class DistilleryStack(cdk.Stack):
         cloudflarecompute = _lambda.DockerImageFunction(
             self, 'cloudflarecompute',
             code = _lambda.DockerImageCode.from_image_asset('cidr/cloudflare'),
-            timeout = cdk.Duration.seconds(900),
+            timeout = Duration.seconds(900),
             role = role,
             environment = dict(
                 DYNAMODB_TABLE = table.table_name,
@@ -377,7 +380,7 @@ class DistilleryStack(cdk.Stack):
             self, 'cloudflarelogs',
             log_group_name = '/aws/lambda/'+cloudflarecompute.function_name,
             retention = _logs.RetentionDays.ONE_DAY,
-            removal_policy = cdk.RemovalPolicy.DESTROY
+            removal_policy = RemovalPolicy.DESTROY
         )
 
         cloudflaremonitor = _ssm.StringParameter(
@@ -413,7 +416,7 @@ class DistilleryStack(cdk.Stack):
         docompute = _lambda.DockerImageFunction(
             self, 'docompute',
             code = _lambda.DockerImageCode.from_image_asset('cidr/do'),
-            timeout = cdk.Duration.seconds(900),
+            timeout = Duration.seconds(900),
             role = role,
             environment = dict(
                 DYNAMODB_TABLE = table.table_name,
@@ -426,7 +429,7 @@ class DistilleryStack(cdk.Stack):
             self, 'dologs',
             log_group_name = '/aws/lambda/'+docompute.function_name,
             retention = _logs.RetentionDays.ONE_DAY,
-            removal_policy = cdk.RemovalPolicy.DESTROY
+            removal_policy = RemovalPolicy.DESTROY
         )
 
         domonitor = _ssm.StringParameter(
@@ -462,7 +465,7 @@ class DistilleryStack(cdk.Stack):
         oraclecompute = _lambda.DockerImageFunction(
             self, 'oraclecompute',
             code = _lambda.DockerImageCode.from_image_asset('cidr/oracle'),
-            timeout = cdk.Duration.seconds(900),
+            timeout = Duration.seconds(900),
             role = role,
             environment = dict(
                 DYNAMODB_TABLE = table.table_name,
@@ -475,7 +478,7 @@ class DistilleryStack(cdk.Stack):
             self, 'oraclelogs',
             log_group_name = '/aws/lambda/'+oraclecompute.function_name,
             retention = _logs.RetentionDays.ONE_DAY,
-            removal_policy = cdk.RemovalPolicy.DESTROY
+            removal_policy = RemovalPolicy.DESTROY
         )
 
         oraclemonitor = _ssm.StringParameter(
