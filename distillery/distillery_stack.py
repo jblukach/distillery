@@ -501,4 +501,89 @@ class DistilleryStack(Stack):
         )
         oracleevent.add_target(_targets.LambdaFunction(oraclecompute))
         
+### O365 CIDRS ###
+
+        o365trackerworldwide = _ssm.StringParameter(
+            self, 'o365trackerworldwide',
+            description = 'o365 Distillery Tracker - Worldwide',
+            parameter_name = '/distillery/tracker/o365/worldwide',
+            string_value = 'EMPTY',
+            tier = _ssm.ParameterTier.STANDARD,
+        )
+
+        o365trackerusgovdod = _ssm.StringParameter(
+            self, 'o365trackerusgovdod',
+            description = 'o365 Distillery Tracker - USGovDoD',
+            parameter_name = '/distillery/tracker/o365/usgovdod',
+            string_value = 'EMPTY',
+            tier = _ssm.ParameterTier.STANDARD,
+        )
+        
+        o365trackerusgovgcchigh = _ssm.StringParameter(
+            self, 'o365trackerusgovgcchigh',
+            description = 'o365 Distillery Tracker - USGovGCCHigh',
+            parameter_name = '/distillery/tracker/o365/usgovgcchigh',
+            string_value = 'EMPTY',
+            tier = _ssm.ParameterTier.STANDARD,
+        )
+        
+        o365trackerchina = _ssm.StringParameter(
+            self, 'o365trackerchina',
+            description = 'o365 Distillery Tracker - China',
+            parameter_name = '/distillery/tracker/o365/china',
+            string_value = 'EMPTY',
+            tier = _ssm.ParameterTier.STANDARD,
+        )
+        
+        o365trackergermany = _ssm.StringParameter(
+            self, 'o365trackergermany',
+            description = 'o365 Distillery Tracker - Germany',
+            parameter_name = '/distillery/tracker/o365/germany',
+            string_value = 'EMPTY',
+            tier = _ssm.ParameterTier.STANDARD,
+        )
+
+        o365compute = _lambda.DockerImageFunction(
+            self, 'o365compute',
+            code = _lambda.DockerImageCode.from_image_asset('cidr/o365'),
+            timeout = Duration.seconds(900),
+            role = role,
+            environment = dict(
+                DYNAMODB_TABLE = table.table_name,
+                WORLD_PARAMETER = o365trackerworldwide.parameter_name,
+                DOD_PARAMETER = o365trackerusgovdod.parameter_name,
+                HIGH_PARAMETER = o365trackerusgovgcchigh.parameter_name,
+                CHINA_PARAMETER = o365trackerchina.parameter_name,
+                GERMANY_PARAMETER = o365trackergermany.parameter_name
+            ),
+            memory_size = 512
+        )
+
+        o365logs = _logs.LogGroup(
+            self, 'o365logs',
+            log_group_name = '/aws/lambda/'+o365compute.function_name,
+            retention = _logs.RetentionDays.ONE_DAY,
+            removal_policy = RemovalPolicy.DESTROY
+        )
+
+        o365monitor = _ssm.StringParameter(
+            self, 'o365monitor',
+            description = 'o365 Distillery Monitor',
+            parameter_name = '/distillery/monitor/o365',
+            string_value = '/aws/lambda/'+o365compute.function_name,
+            tier = _ssm.ParameterTier.STANDARD,
+        )
+
+        o365event = _events.Rule(
+            self, 'o365event',
+            schedule=_events.Schedule.cron(
+                minute='0',
+                hour='*',
+                month='*',
+                week_day='*',
+                year='*'
+            )
+        )
+        o365event.add_target(_targets.LambdaFunction(o365compute))
+
 ###
