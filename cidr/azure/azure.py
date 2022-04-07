@@ -8,7 +8,7 @@ import requests
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-def lambdaHandler(event, context):
+def handler(event, context):
     
     dynamodb = boto3.resource('dynamodb')
     table = dynamodb.Table(os.environ['DYNAMODB_TABLE'])

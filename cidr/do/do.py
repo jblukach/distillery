@@ -9,7 +9,7 @@ from boto3.dynamodb.conditions import Key
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-def lambdaHandler(event, context):
+def handler(event, context):
     
     client = boto3.client('ssm')
     

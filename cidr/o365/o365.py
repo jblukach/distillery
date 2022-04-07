@@ -62,7 +62,7 @@ def downloader(instance, latest, parameter, link):
             Overwrite = True
         )   
 
-def lambdaHandler(event, context):
+def handler(event, context):
     
     r = requests.get('https://endpoints.office.com/version?clientrequestid='+str(uuid.uuid4()))
     logger.info('Link Status Code: '+str(r.status_code))

@@ -8,7 +8,7 @@ import requests
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-def lambdaHandler(event, context):
+def handler(event, context):
     
     dynamodb = boto3.resource('dynamodb')
     table = dynamodb.Table(os.environ['DYNAMODB_TABLE'])
@@ -17,16 +17,16 @@ def lambdaHandler(event, context):
     response = client.get_parameter(Name=os.environ['SSM_PARAMETER'])
     prevtoken = response['Parameter']['Value']
     
-    r = requests.get('https://www.gstatic.com/ipranges/goog.json')
+    r = requests.get('https://www.gstatic.com/ipranges/cloud.json')
     logger.info('Download Status Code: '+str(r.status_code))
     
     if r.status_code == 200:
         output = r.json()
         if prevtoken != output['syncToken']:
-            logger.info('Updating Google IP Ranges')
+            logger.info('Updating GCP IP Ranges')
             for cidr in output['prefixes']:
                 try:
-                    sortkey = 'GOOGLE#'+cidr['ipv4Prefix']
+                    sortkey = 'GCP#'+cidr['scope']+'#'+cidr['ipv4Prefix']
                     hostmask = cidr['ipv4Prefix'].split('/')
                     iptype = ipaddress.ip_address(hostmask[0])
                     nametype = 'IPv'+str(iptype.version)+'#'
@@ -35,20 +35,24 @@ def lambdaHandler(event, context):
                     first, last = netrange[0], netrange[-1]
                     firstip = int(ipaddress.IPv4Address(first))
                     lastip = int(ipaddress.IPv4Address(last))
+                    service = cidr['service']
+                    scope = cidr['scope']
                     table.put_item(
                         Item= {
                             'pk': nametype,
                             'sk': sortkey,
+                            'service': service,
+                            'scope': scope,
                             'cidr': iprange,
                             'created': output['creationTime'],
                             'firstip': firstip,
                             'lastip': lastip
-                        } 
+                        }
                     )
                 except:
                     pass
                 try:
-                    sortkey = 'GOOGLE#'+cidr['ipv6Prefix']
+                    sortkey = 'GCP#'+cidr['scope']+'#'+cidr['ipv6Prefix']
                     hostmask = cidr['ipv6Prefix'].split('/')
                     iptype = ipaddress.ip_address(hostmask[0])
                     nametype = 'IPv'+str(iptype.version)+'#'
@@ -57,27 +61,31 @@ def lambdaHandler(event, context):
                     first, last = netrange[0], netrange[-1]
                     firstip = int(ipaddress.IPv6Address(first))
                     lastip = int(ipaddress.IPv6Address(last))
+                    service = cidr['service']
+                    scope = cidr['scope']
                     table.put_item(
                         Item= {
                             'pk': nametype,
                             'sk': sortkey,
+                            'service': service,
+                            'scope': scope,
                             'cidr': iprange,
                             'created': output['creationTime'],
                             'firstip': firstip,
                             'lastip': lastip
-                        } 
+                        }
                     )
                 except:
-                    pass            
-            logger.info('Google IP Ranges Updated')
+                    pass
+            logger.info('GCP IP Ranges Updated')
             response = client.put_parameter(Name=os.environ['SSM_PARAMETER'],
                                             Value=output['syncToken'],
                                             Type='String',
                                             Overwrite=True)
         else:
-            logger.info('No Google IP Range Updates')
+            logger.info('No GCP IP Range Updates')
 
     return {
         'statusCode': 200,
-        'body': json.dumps('Download Google IP Ranges')
+        'body': json.dumps('Download GCP IP Ranges')
     }
