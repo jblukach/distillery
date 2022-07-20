@@ -27,7 +27,13 @@ def handler(event, context):
 
         for cidr in digitalocean:
             parsed = cidr.split(',')
-            sortkey = 'DO#'+parsed[2]+'#'+parsed[0]
+            if parsed[1] == 'None':
+                vartwo = 'None'
+                varthree = 'None'
+            else:
+                vartwo = parsed[2]
+                varthree = parsed[3]
+            sortkey = 'DO#'+vartwo+'#'+parsed[0]
             hostmask = parsed[0].split('/')
             iptype = ipaddress.ip_address(hostmask[0])
             nametype = 'IPv'+str(iptype.version)+'#'
@@ -56,7 +62,7 @@ def handler(event, context):
                         'firstip': firstip,
                         'lastip': lastip,
                         'country': parsed[1],
-                        'city': parsed[3]
+                        'city': varthree
                     } 
                 )
                 client.put_parameter(
