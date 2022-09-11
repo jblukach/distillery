@@ -1,59 +1,19 @@
 import boto3
 import ipaddress
 import json
-import logging
 import os
 from boto3.dynamodb.conditions import Key
 
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-
-def get_slots(intent_request):
-    return intent_request['sessionState']['intent']['slots']
-    
-def get_slot(intent_request, slotName):
-    slots = get_slots(intent_request)
-    if slots is not None and slotName in slots and slots[slotName] is not None:
-        return slots[slotName]['value']['interpretedValue']
-    else:
-        return None    
-
-def get_session_attributes(intent_request):
-    sessionState = intent_request['sessionState']
-    if 'sessionAttributes' in sessionState:
-        return sessionState['sessionAttributes']
-    return {}
-
-def close(intent_request, session_attributes, fulfillment_state, message):
-    intent_request['sessionState']['intent']['state'] = fulfillment_state
-    return {
-        'sessionState': {
-            'sessionAttributes': session_attributes,
-            'dialogAction': {
-                'type': 'Close'
-            },
-            'intent': intent_request['sessionState']['intent']
-        },
-        'messages': [message],
-        'sessionId': intent_request['sessionId'],
-        'requestAttributes': intent_request['requestAttributes'] if 'requestAttributes' in intent_request else None
-    }
-
 def handler(event, context):
-    
-    logger.info(event)
     
     dynamodb = boto3.resource('dynamodb')
     table = dynamodb.Table(os.environ['DYNAMODB_TABLE'])
-    
-    session_attributes = get_session_attributes(event)
-    slots = get_slots(event)
-    ipaddr = get_slot(event, 'cidrip')
 
     try:
-        
+
+        ipaddr = event['item']
         iptype = ipaddress.ip_address(ipaddr)
-        
+
         if iptype.is_multicast == True:
             msg = 'Multicast IP Address - RFC 3171 (IPv4) or RFC 2373 (IPv6)'
         elif iptype.is_private == True:
@@ -68,9 +28,9 @@ def handler(event, context):
             msg = 'Link Local IP Address - RFC 3927'
 
         elif iptype.version == 4:
-            
+
             intip = int(ipaddress.IPv4Address(ipaddr))
-            
+
             firstlist = []
             first = table.query(
                 IndexName = 'firstip',
@@ -86,7 +46,7 @@ def handler(event, context):
                 firstdata.extend(first['Items'])
             for item in firstdata:
                 firstlist.append(item['sk']+'#'+str(item['created']))
-               
+
             lastlist = []
             last = table.query(
                 IndexName = 'lastip',
@@ -102,20 +62,20 @@ def handler(event, context):
                 lastdata.extend(last['Items'])
             for item in lastdata:
                 lastlist.append(item['sk']+'#'+str(item['created']))
-            
+
             matches = set(firstlist) & set(lastlist)
             theresults = {}
             theresults["cidrs"] = []
             for line in matches:
                 parsed = line.split('#')
                 theresults["cidrs"].append(parsed)
-            
+
             msg = theresults
-            
+
         elif iptype.version == 6:
-            
+
             intip = int(ipaddress.IPv6Address(ipaddr))
-            
+
             firstlist = []
             first = table.query(
                 IndexName = 'firstip',
@@ -131,7 +91,7 @@ def handler(event, context):
                 firstdata.extend(first['Items'])
             for item in firstdata:
                 firstlist.append(item['sk']+'#'+str(item['created']))
-               
+
             lastlist = []
             last = table.query(
                 IndexName = 'lastip',
@@ -147,26 +107,22 @@ def handler(event, context):
                 lastdata.extend(last['Items'])
             for item in lastdata:
                 lastlist.append(item['sk']+'#'+str(item['created']))
-            
+
             matches = set(firstlist) & set(lastlist)
             theresults = {}
             theresults["cidrs"] = []
             for line in matches:
                 parsed = line.split('#')
                 theresults["cidrs"].append(parsed)
-                
+
             msg = theresults
-            
+
     except:
-        
-        msg = 'Invalid IP Address'
+
+        msg = {"RequiredFormat": {"item": "116.129.226.132"}}
         pass
 
-    message =  {
-        'contentType': 'PlainText',
-        'content': str(msg)
+    return {
+        'statusCode': 200,
+        'body': json.dumps(msg)
     }
-    
-    fulfillment_state = "Fulfilled"
-    
-    return close(event, session_attributes, fulfillment_state, message)
