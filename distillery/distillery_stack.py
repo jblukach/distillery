@@ -1,3 +1,6 @@
+import boto3
+import sys
+
 from aws_cdk import (
     Duration,
     RemovalPolicy,
@@ -8,6 +11,9 @@ from aws_cdk import (
     aws_iam as _iam,
     aws_lambda as _lambda,
     aws_logs as _logs,
+    aws_logs_destinations as _destinations,
+    aws_sns as _sns,
+    aws_sns_subscriptions as _subs,
     aws_ssm as _ssm,
 )
 
@@ -17,6 +23,26 @@ class DistilleryStack(Stack):
 
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
+
+        try:
+            client = boto3.client('account')
+            operations = client.get_alternate_contact(
+                AlternateContactType='OPERATIONS'
+            )
+        except:
+            print('Missing IAM Permission --> account:GetAlternateContact')
+            sys.exit(1)
+            pass
+
+        operationstopic = _sns.Topic(
+            self, 'operationstopic'
+        )
+
+        operationstopic.add_subscription(
+            _subs.EmailSubscription(operations['AlternateContact']['EmailAddress'])
+        )
+
+### DYNAMODB ###
 
         table = _dynamodb.Table(
             self, 'cidr',
@@ -32,7 +58,7 @@ class DistilleryStack(Stack):
             point_in_time_recovery = True,
             removal_policy = RemovalPolicy.DESTROY
         )
-        
+
         table.add_global_secondary_index(
             index_name = 'firstip',
             partition_key = {
@@ -69,19 +95,21 @@ class DistilleryStack(Stack):
             tier = _ssm.ParameterTier.STANDARD,
         )
 
+### IAM ###
+
         role = _iam.Role(
             self, 'role',
             assumed_by = _iam.ServicePrincipal(
                 'lambda.amazonaws.com'
             )
         )
-        
+
         role.add_managed_policy(
             _iam.ManagedPolicy.from_aws_managed_policy_name(
                 'service-role/AWSLambdaBasicExecutionRole'
             )
         )
-        
+
         role.add_to_policy(
             _iam.PolicyStatement(
                 actions = [
@@ -96,10 +124,45 @@ class DistilleryStack(Stack):
             )
         )
 
-### SEARCH LEX V2 ###
+        role.add_to_policy(
+            _iam.PolicyStatement(
+                actions = [
+                    'sns:Publish'
+                ],
+                resources = [
+                    operationstopic.topic_arn
+                ]
+            )
+        )
+
+### ERROR ###
+
+        error = _lambda.Function(
+            self, 'error',
+            runtime = _lambda.Runtime.PYTHON_3_9,
+            code = _lambda.Code.from_asset('error'),
+            handler = 'error.handler',
+            role = role,
+            environment = dict(
+                SNS_TOPIC = operationstopic.topic_arn
+            ),
+            architecture = _lambda.Architecture.ARM_64,
+            timeout = Duration.seconds(7),
+            memory_size = 128
+        )
+
+        errormonitor = _logs.LogGroup(
+            self, 'errormonitor',
+            log_group_name = '/aws/lambda/'+error.function_name,
+            retention = _logs.RetentionDays.ONE_DAY,
+            removal_policy = RemovalPolicy.DESTROY
+        )
+
+### SEARCH ###
 
         search = _lambda.Function(
             self, 'search',
+            function_name = 'cidr',
             runtime = _lambda.Runtime.PYTHON_3_9,
             code = _lambda.Code.from_asset('search'),
             handler = 'search.handler',
@@ -119,43 +182,18 @@ class DistilleryStack(Stack):
             removal_policy = RemovalPolicy.DESTROY
         )
 
-        searchmonitor = _ssm.StringParameter(
-            self, 'searchmonitor',
-            description = 'Search Distillery Monitor',
-            parameter_name = '/distillery/monitor/search',
-            string_value = '/aws/lambda/'+search.function_name,
-            tier = _ssm.ParameterTier.STANDARD,
+        searchsub = _logs.SubscriptionFilter(
+            self, 'searchsub',
+            log_group = searchlogs,
+            destination = _destinations.LambdaDestination(error),
+            filter_pattern = _logs.FilterPattern.all_terms('ERROR')
         )
 
-### SEARCH LEX V1 ###
-
-        oldsearch = _lambda.Function(
-            self, 'oldsearch',
-            runtime = _lambda.Runtime.PYTHON_3_9,
-            code = _lambda.Code.from_asset('oldsearch'),
-            handler = 'oldsearch.handler',
-            role = role,
-            environment = dict(
-                DYNAMODB_TABLE = table.table_name
-            ),
-            architecture = _lambda.Architecture.ARM_64,
-            timeout = Duration.seconds(30),
-            memory_size = 512
-        )
-
-        oldsearchlogs = _logs.LogGroup(
-            self, 'oldsearchlogs',
-            log_group_name = '/aws/lambda/'+oldsearch.function_name,
-            retention = _logs.RetentionDays.INFINITE,
-            removal_policy = RemovalPolicy.DESTROY
-        )
-
-        oldsearchmonitor = _ssm.StringParameter(
-            self, 'oldsearchmonitor',
-            description = 'Old Search Distillery Monitor',
-            parameter_name = '/distillery/monitor/oldsearch',
-            string_value = '/aws/lambda/'+oldsearch.function_name,
-            tier = _ssm.ParameterTier.STANDARD,
+        searchtime= _logs.SubscriptionFilter(
+            self, 'searchtime',
+            log_group = searchlogs,
+            destination = _destinations.LambdaDestination(error),
+            filter_pattern = _logs.FilterPattern.all_terms('Task','timed','out')
         )
 
 ### AWS CIDRS ###
@@ -187,24 +225,31 @@ class DistilleryStack(Stack):
             removal_policy = RemovalPolicy.DESTROY
         )
 
-        awsmonitor = _ssm.StringParameter(
-            self, 'awsmonitor',
-            description = 'AWS Distillery Monitor',
-            parameter_name = '/distillery/monitor/aws',
-            string_value = '/aws/lambda/'+awscompute.function_name,
-            tier = _ssm.ParameterTier.STANDARD,
+        awssub = _logs.SubscriptionFilter(
+            self, 'awssub',
+            log_group = awslogs,
+            destination = _destinations.LambdaDestination(error),
+            filter_pattern = _logs.FilterPattern.all_terms('ERROR')
+        )
+
+        awstime = _logs.SubscriptionFilter(
+            self, 'awstime',
+            log_group = awslogs,
+            destination = _destinations.LambdaDestination(error),
+            filter_pattern = _logs.FilterPattern.all_terms('Task','timed','out')
         )
 
         awsevent = _events.Rule(
             self, 'awsevent',
-            schedule=_events.Schedule.cron(
-                minute='0',
-                hour='*',
-                month='*',
-                week_day='*',
-                year='*'
+            schedule = _events.Schedule.cron(
+                minute = '0',
+                hour = '*',
+                month = '*',
+                week_day = '*',
+                year = '*'
             )
         )
+
         awsevent.add_target(_targets.LambdaFunction(awscompute))
 
 ### GOOGLE CIDRS ###
@@ -236,24 +281,31 @@ class DistilleryStack(Stack):
             removal_policy = RemovalPolicy.DESTROY
         )
 
-        googlemonitor = _ssm.StringParameter(
-            self, 'googlemonitor',
-            description = 'Google Distillery Monitor',
-            parameter_name = '/distillery/monitor/google',
-            string_value = '/aws/lambda/'+googlecompute.function_name,
-            tier = _ssm.ParameterTier.STANDARD,
+        googlesub = _logs.SubscriptionFilter(
+            self, 'googlesub',
+            log_group = googlelogs,
+            destination = _destinations.LambdaDestination(error),
+            filter_pattern = _logs.FilterPattern.all_terms('ERROR')
+        )
+
+        googletime = _logs.SubscriptionFilter(
+            self, 'googletime',
+            log_group = googlelogs,
+            destination = _destinations.LambdaDestination(error),
+            filter_pattern = _logs.FilterPattern.all_terms('Task','timed','out')
         )
 
         googleevent = _events.Rule(
             self, 'googleevent',
-            schedule=_events.Schedule.cron(
-                minute='0',
-                hour='*',
-                month='*',
-                week_day='*',
-                year='*'
+            schedule = _events.Schedule.cron(
+                minute = '0',
+                hour = '*',
+                month = '*',
+                week_day = '*',
+                year = '*'
             )
         )
+
         googleevent.add_target(_targets.LambdaFunction(googlecompute))
         
 ### GCP CIDRS ###
@@ -285,24 +337,31 @@ class DistilleryStack(Stack):
             removal_policy = RemovalPolicy.DESTROY
         )
 
-        gcpmonitor = _ssm.StringParameter(
-            self, 'gcpmonitor',
-            description = 'GCP Distillery Monitor',
-            parameter_name = '/distillery/monitor/gcp',
-            string_value = '/aws/lambda/'+gcpcompute.function_name,
-            tier = _ssm.ParameterTier.STANDARD,
+        gcpsub = _logs.SubscriptionFilter(
+            self, 'gcpsub',
+            log_group = gcplogs,
+            destination = _destinations.LambdaDestination(error),
+            filter_pattern = _logs.FilterPattern.all_terms('ERROR')
+        )
+
+        gcptime = _logs.SubscriptionFilter(
+            self, 'gcptime',
+            log_group = gcplogs,
+            destination = _destinations.LambdaDestination(error),
+            filter_pattern = _logs.FilterPattern.all_terms('Task','timed','out')
         )
 
         gcpevent = _events.Rule(
             self, 'gcpevent',
-            schedule=_events.Schedule.cron(
-                minute='0',
-                hour='*',
-                month='*',
-                week_day='*',
-                year='*'
+            schedule = _events.Schedule.cron(
+                minute = '0',
+                hour = '*',
+                month = '*',
+                week_day = '*',
+                year = '*'
             )
         )
+
         gcpevent.add_target(_targets.LambdaFunction(gcpcompute))
 
 ### AZURE CIDRS ###
@@ -334,24 +393,31 @@ class DistilleryStack(Stack):
             removal_policy = RemovalPolicy.DESTROY
         )
 
-        azuremonitor = _ssm.StringParameter(
-            self, 'azuremonitor',
-            description = 'Azure Distillery Monitor',
-            parameter_name = '/distillery/monitor/azure',
-            string_value = '/aws/lambda/'+azurecompute.function_name,
-            tier = _ssm.ParameterTier.STANDARD,
+        azuresub = _logs.SubscriptionFilter(
+            self, 'azuresub',
+            log_group = azurelogs,
+            destination = _destinations.LambdaDestination(error),
+            filter_pattern = _logs.FilterPattern.all_terms('ERROR')
+        )
+
+        azuretime = _logs.SubscriptionFilter(
+            self, 'azuretime',
+            log_group = azurelogs,
+            destination = _destinations.LambdaDestination(error),
+            filter_pattern = _logs.FilterPattern.all_terms('Task','timed','out')
         )
 
         azureevent = _events.Rule(
             self, 'azureevent',
-            schedule=_events.Schedule.cron(
-                minute='0',
-                hour='*',
-                month='*',
-                week_day='*',
-                year='*'
+            schedule = _events.Schedule.cron(
+                minute = '0',
+                hour = '*',
+                month = '*',
+                week_day = '*',
+                year = '*'
             )
         )
+
         azureevent.add_target(_targets.LambdaFunction(azurecompute))
 
 ### CLOUDFLARE CIDRS ###
@@ -383,24 +449,31 @@ class DistilleryStack(Stack):
             removal_policy = RemovalPolicy.DESTROY
         )
 
-        cloudflaremonitor = _ssm.StringParameter(
-            self, 'cloudflaremonitor',
-            description = 'Cloud Flare Distillery Monitor',
-            parameter_name = '/distillery/monitor/cloudflare',
-            string_value = '/aws/lambda/'+cloudflarecompute.function_name,
-            tier = _ssm.ParameterTier.STANDARD,
+        cloudflaresub = _logs.SubscriptionFilter(
+            self, 'cloudflaresub',
+            log_group = cloudflarelogs,
+            destination = _destinations.LambdaDestination(error),
+            filter_pattern = _logs.FilterPattern.all_terms('ERROR')
+        )
+
+        cloudflaretime = _logs.SubscriptionFilter(
+            self, 'cloudflaretime',
+            log_group = cloudflarelogs,
+            destination = _destinations.LambdaDestination(error),
+            filter_pattern = _logs.FilterPattern.all_terms('Task','timed','out')
         )
 
         cloudflareevent = _events.Rule(
             self, 'cloudflareevent',
-            schedule=_events.Schedule.cron(
-                minute='0',
-                hour='*',
-                month='*',
-                week_day='*',
-                year='*'
+            schedule = _events.Schedule.cron(
+                minute = '0',
+                hour = '*',
+                month = '*',
+                week_day = '*',
+                year = '*'
             )
         )
+
         cloudflareevent.add_target(_targets.LambdaFunction(cloudflarecompute))
 
 ### DIGITAL OCEAN CIDRS ###
@@ -432,24 +505,31 @@ class DistilleryStack(Stack):
             removal_policy = RemovalPolicy.DESTROY
         )
 
-        domonitor = _ssm.StringParameter(
-            self, 'domonitor',
-            description = 'Digital Ocean Distillery Monitor',
-            parameter_name = '/distillery/monitor/do',
-            string_value = '/aws/lambda/'+docompute.function_name,
-            tier = _ssm.ParameterTier.STANDARD,
+        dosub = _logs.SubscriptionFilter(
+            self, 'dosub',
+            log_group = dologs,
+            destination = _destinations.LambdaDestination(error),
+            filter_pattern = _logs.FilterPattern.all_terms('ERROR')
+        )
+
+        dotime = _logs.SubscriptionFilter(
+            self, 'dotime',
+            log_group = dologs,
+            destination = _destinations.LambdaDestination(error),
+            filter_pattern = _logs.FilterPattern.all_terms('Task','timed','out')
         )
 
         doevent = _events.Rule(
             self, 'doevent',
-            schedule=_events.Schedule.cron(
-                minute='0',
-                hour='*',
-                month='*',
-                week_day='*',
-                year='*'
+            schedule = _events.Schedule.cron(
+                minute = '0',
+                hour = '*',
+                month = '*',
+                week_day = '*',
+                year = '*'
             )
         )
+
         doevent.add_target(_targets.LambdaFunction(docompute))
 
 ### ORACLE CIDRS ###
@@ -481,24 +561,31 @@ class DistilleryStack(Stack):
             removal_policy = RemovalPolicy.DESTROY
         )
 
-        oraclemonitor = _ssm.StringParameter(
-            self, 'oraclemonitor',
-            description = 'Oracle Distillery Monitor',
-            parameter_name = '/distillery/monitor/oracle',
-            string_value = '/aws/lambda/'+oraclecompute.function_name,
-            tier = _ssm.ParameterTier.STANDARD,
+        oraclesub = _logs.SubscriptionFilter(
+            self, 'oraclesub',
+            log_group = oraclelogs,
+            destination = _destinations.LambdaDestination(error),
+            filter_pattern = _logs.FilterPattern.all_terms('ERROR')
+        )
+
+        oracletime = _logs.SubscriptionFilter(
+            self, 'oracletime',
+            log_group = oraclelogs,
+            destination = _destinations.LambdaDestination(error),
+            filter_pattern = _logs.FilterPattern.all_terms('Task','timed','out')
         )
 
         oracleevent = _events.Rule(
             self, 'oracleevent',
-            schedule=_events.Schedule.cron(
-                minute='0',
-                hour='*',
-                month='*',
-                week_day='*',
-                year='*'
+            schedule = _events.Schedule.cron(
+                minute = '0',
+                hour = '*',
+                month = '*',
+                week_day = '*',
+                year = '*'
             )
         )
+
         oracleevent.add_target(_targets.LambdaFunction(oraclecompute))
         
 ### O365 CIDRS ###
@@ -566,24 +653,29 @@ class DistilleryStack(Stack):
             removal_policy = RemovalPolicy.DESTROY
         )
 
-        o365monitor = _ssm.StringParameter(
-            self, 'o365monitor',
-            description = 'o365 Distillery Monitor',
-            parameter_name = '/distillery/monitor/o365',
-            string_value = '/aws/lambda/'+o365compute.function_name,
-            tier = _ssm.ParameterTier.STANDARD,
+        o365sub = _logs.SubscriptionFilter(
+            self, 'o365sub',
+            log_group = o365logs,
+            destination = _destinations.LambdaDestination(error),
+            filter_pattern = _logs.FilterPattern.all_terms('ERROR')
+        )
+
+        o365time = _logs.SubscriptionFilter(
+            self, 'o365time',
+            log_group = o365logs,
+            destination = _destinations.LambdaDestination(error),
+            filter_pattern = _logs.FilterPattern.all_terms('Task','timed','out')
         )
 
         o365event = _events.Rule(
             self, 'o365event',
-            schedule=_events.Schedule.cron(
-                minute='0',
-                hour='*',
-                month='*',
-                week_day='*',
-                year='*'
+            schedule = _events.Schedule.cron(
+                minute = '0',
+                hour = '*',
+                month = '*',
+                week_day = '*',
+                year = '*'
             )
         )
-        o365event.add_target(_targets.LambdaFunction(o365compute))
 
-###
+        o365event.add_target(_targets.LambdaFunction(o365compute))
