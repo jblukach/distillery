@@ -4,7 +4,10 @@ import json
 import logging
 import os
 import requests
+import time
 import uuid
+from datetime import datetime
+from github import Github
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -13,6 +16,22 @@ dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table(os.environ['DYNAMODB_TABLE'])
     
 client = boto3.client('ssm')
+
+def upload(filename):
+    
+    ssm = boto3.client('ssm')
+    token = ssm.get_parameter(Name=os.environ['GITHUB_TOKEN'], WithDecryption=True)
+    
+    with open(filename, 'r') as t:
+        text = t.read()
+    t.close()
+    
+    g = Github(token['Parameter']['Value'])
+    repo = g.get_repo('4n6ir/cloudbot')
+    
+    parsed = filename.split('/')
+    
+    repo.create_file('_posts/'+parsed[2], parsed[2], text, branch='main')
 
 def downloader(instance, latest, parameter, link):
     
@@ -54,7 +73,18 @@ def downloader(instance, latest, parameter, link):
                 pass
             
         logger.info('o365 '+instance+' IP Ranges Updated')
-        
+        now = datetime.now()
+        epoch = int(time.time())
+        filename = '/tmp/'+str(now.strftime('%Y'))+'-'+str(now.strftime('%m'))+'-'+str(now.strftime('%d'))+'-o365-'+str(epoch)+'.md'
+        with open(filename, 'w') as f:
+            f.write('---\n')
+            f.write('layout: post\n')
+            f.write('title: o365 '+str(now)+'\n')
+            f.write('author: "John Lukach"\n')
+            f.write('tags: o365\n')
+            f.write('---\n\n')
+        f.close()
+        upload(filename)
         response = client.put_parameter(
             Name = parameter,
             Value = str(latest),

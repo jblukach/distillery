@@ -4,12 +4,33 @@ import json
 import logging
 import os
 import requests
+import time
 from boto3.dynamodb.conditions import Key
+from datetime import datetime
+from github import Github
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
+def upload(filename):
+    
+    ssm = boto3.client('ssm')
+    token = ssm.get_parameter(Name=os.environ['GITHUB_TOKEN'], WithDecryption=True)
+    
+    with open(filename, 'r') as t:
+        text = t.read()
+    t.close()
+    
+    g = Github(token['Parameter']['Value'])
+    repo = g.get_repo('4n6ir/cloudbot')
+    
+    parsed = filename.split('/')
+    
+    repo.create_file('_posts/'+parsed[2], parsed[2], text, branch='main')
+
 def handler(event, context):
+    
+    status = 'EMPTY'
     
     client = boto3.client('ssm')
     
@@ -48,12 +69,7 @@ def handler(event, context):
                         'lastip': lastip
                     } 
                 )
-                client.put_parameter(
-                    Name = os.environ['SSM_PARAMETER'],
-                    Value = 'NEW',
-                    Type = 'String',
-                    Overwrite = True
-                )
+                status = 'NEW'
 
     cfipv6 = requests.get('https://www.cloudflare.com/ips-v6')
     logger.info('IPv6 Download Status Code: '+str(cfipv6.status_code))
@@ -87,12 +103,21 @@ def handler(event, context):
                         'lastip': lastip
                     } 
                 )
-                client.put_parameter(
-                    Name = os.environ['SSM_PARAMETER'],
-                    Value = 'NEW',
-                    Type = 'String',
-                    Overwrite = True
-                )
+                status = 'NEW'
+
+    if status == 'NEW':
+        now = datetime.now()
+        epoch = int(time.time())
+        filename = '/tmp/'+str(now.strftime('%Y'))+'-'+str(now.strftime('%m'))+'-'+str(now.strftime('%d'))+'-cloudflare-'+str(epoch)+'.md'
+        with open(filename, 'w') as f:
+            f.write('---\n')
+            f.write('layout: post\n')
+            f.write('title: Cloudflare '+str(now)+'\n')
+            f.write('author: "John Lukach"\n')
+            f.write('tags: Cloudflare\n')
+            f.write('---\n\n')
+        f.close()
+        upload(filename)
 
     return {
         'statusCode': 200,

@@ -213,6 +213,7 @@ class DistilleryStack(Stack):
             role = role,
             environment = dict(
                 DYNAMODB_TABLE = table.table_name,
+                GITHUB_TOKEN = '/distillery/github/token',
                 SSM_PARAMETER = awstracker.parameter_name
             ),
             memory_size = 512
@@ -273,6 +274,7 @@ class DistilleryStack(Stack):
             role = role,
             environment = dict(
                 DYNAMODB_TABLE = table.table_name,
+                GITHUB_TOKEN = '/distillery/github/token',
                 SSM_PARAMETER = googletracker.parameter_name
             ),
             memory_size = 512
@@ -329,6 +331,7 @@ class DistilleryStack(Stack):
             role = role,
             environment = dict(
                 DYNAMODB_TABLE = table.table_name,
+                GITHUB_TOKEN = '/distillery/github/token',
                 SSM_PARAMETER = gcptracker.parameter_name
             ),
             memory_size = 512
@@ -385,6 +388,7 @@ class DistilleryStack(Stack):
             role = role,
             environment = dict(
                 DYNAMODB_TABLE = table.table_name,
+                GITHUB_TOKEN = '/distillery/github/token',
                 SSM_PARAMETER = azuretracker.parameter_name
             ),
             memory_size = 512
@@ -426,14 +430,6 @@ class DistilleryStack(Stack):
 
 ### CLOUDFLARE CIDRS ###
 
-        cloudflaretracker = _ssm.StringParameter(
-            self, 'cloudflaretracker',
-            description = 'Cloud Flare Distillery Tracker',
-            parameter_name = '/distillery/tracker/cloudflare',
-            string_value = 'EMPTY',
-            tier = _ssm.ParameterTier.STANDARD,
-        )
-
         cloudflarecompute = _lambda.DockerImageFunction(
             self, 'cloudflarecompute',
             code = _lambda.DockerImageCode.from_image_asset('cidr/cloudflare'),
@@ -441,7 +437,7 @@ class DistilleryStack(Stack):
             role = role,
             environment = dict(
                 DYNAMODB_TABLE = table.table_name,
-                SSM_PARAMETER = cloudflaretracker.parameter_name
+                GITHUB_TOKEN = '/distillery/github/token'
             ),
             memory_size = 512
         )
@@ -482,14 +478,6 @@ class DistilleryStack(Stack):
 
 ### DIGITAL OCEAN CIDRS ###
 
-        dotracker = _ssm.StringParameter(
-            self, 'dotracker',
-            description = 'Digital Ocean Distillery Tracker',
-            parameter_name = '/distillery/tracker/do',
-            string_value = 'EMPTY',
-            tier = _ssm.ParameterTier.STANDARD,
-        )
-
         docompute = _lambda.DockerImageFunction(
             self, 'docompute',
             code = _lambda.DockerImageCode.from_image_asset('cidr/do'),
@@ -497,7 +485,7 @@ class DistilleryStack(Stack):
             role = role,
             environment = dict(
                 DYNAMODB_TABLE = table.table_name,
-                SSM_PARAMETER = dotracker.parameter_name
+                GITHUB_TOKEN = '/distillery/github/token'
             ),
             memory_size = 512
         )
@@ -553,6 +541,7 @@ class DistilleryStack(Stack):
             role = role,
             environment = dict(
                 DYNAMODB_TABLE = table.table_name,
+                GITHUB_TOKEN = '/distillery/github/token',
                 SSM_PARAMETER = oracletracker.parameter_name
             ),
             memory_size = 512
@@ -641,6 +630,7 @@ class DistilleryStack(Stack):
             role = role,
             environment = dict(
                 DYNAMODB_TABLE = table.table_name,
+                GITHUB_TOKEN = '/distillery/github/token',
                 WORLD_PARAMETER = o365trackerworldwide.parameter_name,
                 DOD_PARAMETER = o365trackerusgovdod.parameter_name,
                 HIGH_PARAMETER = o365trackerusgovgcchigh.parameter_name,
