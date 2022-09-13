@@ -240,22 +240,18 @@ class DistilleryStack(Stack):
             filter_pattern = _logs.FilterPattern.all_terms('Task','timed','out')
         )
     
-        #
-        # https://docs.aws.amazon.com/general/latest/gr/aws-ip-ranges.html#subscribe-notifications
-        #
-
-        topic = _sns.Topic.from_topic_arn(
-            self, 'topic',
-            topic_arn = 'arn:aws:sns:us-east-1:806199016981:AmazonIpSpaceChanged'
+        awsevent = _events.Rule(
+            self, 'awsevent',
+            schedule = _events.Schedule.cron(
+                minute = '0',
+                hour = '*',
+                month = '*',
+                week_day = '*',
+                year = '*'
+            )
         )
 
-        subscription = _sns.Subscription(
-            self, 'subscription',
-            topic = topic,
-            endpoint = awscompute.function_arn,
-            protocol = _sns.SubscriptionProtocol.LAMBDA,
-            region = 'us-east-1'
-        )
+        awsevent.add_target(_targets.LambdaFunction(awscompute))
 
 ### GOOGLE CIDRS ###
 

@@ -108,7 +108,7 @@ def handler(event, context):
                 f.write('tags: GCP\n')
                 f.write('---\n\n')
             f.close()
-            upload(filename)
+            #upload(filename)
             response = client.put_parameter(Name=os.environ['SSM_PARAMETER'],
                                             Value=output['syncToken'],
                                             Type='String',
