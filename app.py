@@ -18,6 +18,7 @@ DistilleryStack(
     )
 )
 
-cdk.Tags.of(app).add('distillery','distillery')
+cdk.Tags.of(app).add('Alias','Tacklebox')
+cdk.Tags.of(app).add('GitHub','https://github.com/jblukach/distillery')
 
 app.synth()
