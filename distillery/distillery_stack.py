@@ -92,14 +92,6 @@ class DistilleryStack(Stack):
             non_key_attributes = ['created']
         )
 
-        distillerydb = _ssm.StringParameter(
-            self, 'distillerydb',
-            description = 'Distillery DynamoDB Table',
-            parameter_name = '/distillery/dynamodb/table',
-            string_value = table.table_name,
-            tier = _ssm.ParameterTier.STANDARD,
-        )
-
     ### IAM ###
 
         role = _iam.Role(
@@ -199,7 +191,6 @@ class DistilleryStack(Stack):
             role = role,
             environment = dict(
                 DYNAMODB_TABLE = table.table_name,
-                GITHUB_TOKEN = '/distillery/github/token',
                 SSM_PARAMETER = awstracker.parameter_name
             ),
             memory_size = 512
@@ -256,7 +247,6 @@ class DistilleryStack(Stack):
             role = role,
             environment = dict(
                 DYNAMODB_TABLE = table.table_name,
-                GITHUB_TOKEN = '/distillery/github/token',
                 SSM_PARAMETER = googletracker.parameter_name
             ),
             memory_size = 512
@@ -313,7 +303,6 @@ class DistilleryStack(Stack):
             role = role,
             environment = dict(
                 DYNAMODB_TABLE = table.table_name,
-                GITHUB_TOKEN = '/distillery/github/token',
                 SSM_PARAMETER = gcptracker.parameter_name
             ),
             memory_size = 512
@@ -370,7 +359,6 @@ class DistilleryStack(Stack):
             role = role,
             environment = dict(
                 DYNAMODB_TABLE = table.table_name,
-                GITHUB_TOKEN = '/distillery/github/token',
                 SSM_PARAMETER = azuretracker.parameter_name
             ),
             memory_size = 512
@@ -418,8 +406,7 @@ class DistilleryStack(Stack):
             timeout = Duration.seconds(900),
             role = role,
             environment = dict(
-                DYNAMODB_TABLE = table.table_name,
-                GITHUB_TOKEN = '/distillery/github/token'
+                DYNAMODB_TABLE = table.table_name
             ),
             memory_size = 512
         )
@@ -466,8 +453,7 @@ class DistilleryStack(Stack):
             timeout = Duration.seconds(900),
             role = role,
             environment = dict(
-                DYNAMODB_TABLE = table.table_name,
-                GITHUB_TOKEN = '/distillery/github/token'
+                DYNAMODB_TABLE = table.table_name
             ),
             memory_size = 512
         )
@@ -523,7 +509,6 @@ class DistilleryStack(Stack):
             role = role,
             environment = dict(
                 DYNAMODB_TABLE = table.table_name,
-                GITHUB_TOKEN = '/distillery/github/token',
                 SSM_PARAMETER = oracletracker.parameter_name
             ),
             memory_size = 512
@@ -612,7 +597,6 @@ class DistilleryStack(Stack):
             role = role,
             environment = dict(
                 DYNAMODB_TABLE = table.table_name,
-                GITHUB_TOKEN = '/distillery/github/token',
                 WORLD_PARAMETER = o365trackerworldwide.parameter_name,
                 DOD_PARAMETER = o365trackerusgovdod.parameter_name,
                 HIGH_PARAMETER = o365trackerusgovgcchigh.parameter_name,
