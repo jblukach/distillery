@@ -16,4 +16,5 @@ An RSS feed and website track the ever-changing network IP ranges for the follow
 - Google Cloud
 - Microsoft Azure
 - Microsoft o365
+- NetSPI
 - Oracle Cloud

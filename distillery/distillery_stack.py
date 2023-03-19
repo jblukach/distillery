@@ -228,7 +228,9 @@ class DistilleryStack(Stack):
             )
         )
 
-        awsevent.add_target(_targets.LambdaFunction(awscompute))
+        awsevent.add_target(
+            _targets.LambdaFunction(awscompute)
+        )
 
     ### GOOGLE CIDRS ###
 
@@ -284,7 +286,9 @@ class DistilleryStack(Stack):
             )
         )
 
-        googleevent.add_target(_targets.LambdaFunction(googlecompute))
+        googleevent.add_target(
+            _targets.LambdaFunction(googlecompute)
+        )
         
     ### GCP CIDRS ###
 
@@ -340,7 +344,9 @@ class DistilleryStack(Stack):
             )
         )
 
-        gcpevent.add_target(_targets.LambdaFunction(gcpcompute))
+        gcpevent.add_target(
+            _targets.LambdaFunction(gcpcompute)
+        )
 
     ### AZURE CIDRS ###
 
@@ -396,7 +402,9 @@ class DistilleryStack(Stack):
             )
         )
 
-        azureevent.add_target(_targets.LambdaFunction(azurecompute))
+        azureevent.add_target(
+            _targets.LambdaFunction(azurecompute)
+        )
 
     ### CLOUDFLARE CIDRS ###
 
@@ -443,7 +451,9 @@ class DistilleryStack(Stack):
             )
         )
 
-        cloudflareevent.add_target(_targets.LambdaFunction(cloudflarecompute))
+        cloudflareevent.add_target(
+            _targets.LambdaFunction(cloudflarecompute)
+        )
 
     ### DIGITAL OCEAN CIDRS ###
 
@@ -490,7 +500,9 @@ class DistilleryStack(Stack):
             )
         )
 
-        doevent.add_target(_targets.LambdaFunction(docompute))
+        doevent.add_target(
+            _targets.LambdaFunction(docompute)
+        )
 
     ### ORACLE CIDRS ###
 
@@ -546,7 +558,9 @@ class DistilleryStack(Stack):
             )
         )
 
-        oracleevent.add_target(_targets.LambdaFunction(oraclecompute))
+        oracleevent.add_target(
+            _targets.LambdaFunction(oraclecompute)
+        )
         
     ### O365 CIDRS ###
 
@@ -638,4 +652,55 @@ class DistilleryStack(Stack):
             )
         )
 
-        o365event.add_target(_targets.LambdaFunction(o365compute))
+        o365event.add_target(
+            _targets.LambdaFunction(o365compute)
+        )
+
+    ### NETSPI CIDRS ###
+
+        netspicompute = _lambda.DockerImageFunction(
+            self, 'netspicompute',
+            code = _lambda.DockerImageCode.from_image_asset('cidr/netspi'),
+            timeout = Duration.seconds(900),
+            role = role,
+            environment = dict(
+                DYNAMODB_TABLE = table.table_name
+            ),
+            memory_size = 512
+        )
+
+        netspilogs = _logs.LogGroup(
+            self, 'netspilogs',
+            log_group_name = '/aws/lambda/'+netspicompute.function_name,
+            retention = _logs.RetentionDays.ONE_DAY,
+            removal_policy = RemovalPolicy.DESTROY
+        )
+
+        netspisub = _logs.SubscriptionFilter(
+            self, 'netspisub',
+            log_group = netspilogs,
+            destination = _destinations.LambdaDestination(error),
+            filter_pattern = _logs.FilterPattern.all_terms('ERROR')
+        )
+
+        netspitime = _logs.SubscriptionFilter(
+            self, 'netspitime',
+            log_group = netspilogs,
+            destination = _destinations.LambdaDestination(timeout),
+            filter_pattern = _logs.FilterPattern.all_terms('Task','timed','out')
+        )
+
+        netspievent = _events.Rule(
+            self, 'netspievent',
+            schedule = _events.Schedule.cron(
+                minute = '0',
+                hour = '*',
+                month = '*',
+                week_day = '*',
+                year = '*'
+            )
+        )
+
+        netspievent.add_target(
+            _targets.LambdaFunction(netspicompute)
+        )
