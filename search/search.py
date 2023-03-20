@@ -11,7 +11,7 @@ def handler(event, context):
 
     try:
 
-        ipaddr = event['item']
+        ipaddr = event['ip']
         iptype = ipaddress.ip_address(ipaddr)
 
         if iptype.is_multicast == True:
@@ -119,7 +119,7 @@ def handler(event, context):
 
     except:
 
-        msg = {"RequiredFormat": {"item": "116.129.226.132"}}
+        msg = {"RequiredFormat": {"ip": "116.129.226.132"}}
         pass
 
     return {

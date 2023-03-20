@@ -5,7 +5,7 @@ Cloud service providers like Amazon Web Service (AWS), Microsoft Azure, Google C
 Distillery provides AWS Chatbot integration with Slack Channels for cloud IP range lookups.
 
 ```
-@aws invoke cidr --payload {"item": "116.129.226.132”}
+@aws invoke cidr --payload {"ip": "116.129.226.132”}
 ```
 
 An RSS feed and website track the ever-changing network IP ranges for the following public clouds.
@@ -18,3 +18,5 @@ An RSS feed and website track the ever-changing network IP ranges for the follow
 - Microsoft o365
 - NetSPI
 - Oracle Cloud
+- Tenable
+- Vultr

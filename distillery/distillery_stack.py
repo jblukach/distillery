@@ -156,7 +156,7 @@ class DistilleryStack(Stack):
         searchlogs = _logs.LogGroup(
             self, 'searchlogs',
             log_group_name = '/aws/lambda/'+search.function_name,
-            retention = _logs.RetentionDays.INFINITE,
+            retention = _logs.RetentionDays.ONE_DAY,
             removal_policy = RemovalPolicy.DESTROY
         )
 
@@ -703,4 +703,120 @@ class DistilleryStack(Stack):
 
         netspievent.add_target(
             _targets.LambdaFunction(netspicompute)
+        )
+
+    ### TENABLE CIDRS ###
+
+        tenabletracker = _ssm.StringParameter(
+            self, 'tenabletracker',
+            description = 'Tenable Distillery Tracker',
+            parameter_name = '/distillery/tracker/tenable',
+            string_value = 'EMPTY',
+            tier = _ssm.ParameterTier.STANDARD,
+        )
+
+        tenablecompute = _lambda.DockerImageFunction(
+            self, 'tenablecompute',
+            code = _lambda.DockerImageCode.from_image_asset('cidr/tenable'),
+            timeout = Duration.seconds(900),
+            role = role,
+            environment = dict(
+                DYNAMODB_TABLE = table.table_name,
+                SSM_PARAMETER = tenabletracker.parameter_name
+            ),
+            memory_size = 512
+        )
+
+        tenablelogs = _logs.LogGroup(
+            self, 'tenablelogs',
+            log_group_name = '/aws/lambda/'+tenablecompute.function_name,
+            retention = _logs.RetentionDays.ONE_DAY,
+            removal_policy = RemovalPolicy.DESTROY
+        )
+
+        tenablesub = _logs.SubscriptionFilter(
+            self, 'tenablesub',
+            log_group = tenablelogs,
+            destination = _destinations.LambdaDestination(error),
+            filter_pattern = _logs.FilterPattern.all_terms('ERROR')
+        )
+
+        tenabletime = _logs.SubscriptionFilter(
+            self, 'tenabletime',
+            log_group = tenablelogs,
+            destination = _destinations.LambdaDestination(timeout),
+            filter_pattern = _logs.FilterPattern.all_terms('Task','timed','out')
+        )
+    
+        tenableevent = _events.Rule(
+            self, 'tenableevent',
+            schedule = _events.Schedule.cron(
+                minute = '0',
+                hour = '*',
+                month = '*',
+                week_day = '*',
+                year = '*'
+            )
+        )
+
+        tenableevent.add_target(
+            _targets.LambdaFunction(tenablecompute)
+        )
+
+    ### VULTR CIDRS ###
+
+        vultrtracker = _ssm.StringParameter(
+            self, 'vultrtracker',
+            description = 'Vultr Distillery Tracker',
+            parameter_name = '/distillery/tracker/vultr',
+            string_value = 'EMPTY',
+            tier = _ssm.ParameterTier.STANDARD,
+        )
+
+        vultrcompute = _lambda.DockerImageFunction(
+            self, 'vultrcompute',
+            code = _lambda.DockerImageCode.from_image_asset('cidr/vultr'),
+            timeout = Duration.seconds(900),
+            role = role,
+            environment = dict(
+                DYNAMODB_TABLE = table.table_name,
+                SSM_PARAMETER = vultrtracker.parameter_name
+            ),
+            memory_size = 512
+        )
+
+        vultrlogs = _logs.LogGroup(
+            self, 'vultrlogs',
+            log_group_name = '/aws/lambda/'+vultrcompute.function_name,
+            retention = _logs.RetentionDays.ONE_DAY,
+            removal_policy = RemovalPolicy.DESTROY
+        )
+
+        vultrsub = _logs.SubscriptionFilter(
+            self, 'vultrsub',
+            log_group = vultrlogs,
+            destination = _destinations.LambdaDestination(error),
+            filter_pattern = _logs.FilterPattern.all_terms('ERROR')
+        )
+
+        vultrtime = _logs.SubscriptionFilter(
+            self, 'vultrtime',
+            log_group = vultrlogs,
+            destination = _destinations.LambdaDestination(timeout),
+            filter_pattern = _logs.FilterPattern.all_terms('Task','timed','out')
+        )
+
+        vultrevent = _events.Rule(
+            self, 'vultrevent',
+            schedule = _events.Schedule.cron(
+                minute = '0',
+                hour = '*',
+                month = '*',
+                week_day = '*',
+                year = '*'
+            )
+        )
+
+        vultrevent.add_target(
+            _targets.LambdaFunction(vultrcompute)
         )
