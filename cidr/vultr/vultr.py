@@ -26,43 +26,37 @@ def handler(event, context):
                 iptype = ipaddress.ip_address(hostmask[0])
                 nametype = 'IPv'+str(iptype.version)+'#'
                 iprange = subnet['ip_prefix']
-                netrange = ipaddress.IPv4Network(subnet['ip_prefix'])
-                first, last = netrange[0], netrange[-1]
-                firstip = int(ipaddress.IPv4Address(first))
-                lastip = int(ipaddress.IPv4Address(last))
-                
-                print(nametype)
-                print(sortkey)
-                print(iprange)
-                print(subnet['region'])
-                print(subnet['city'])
-                print(subnet['alpha2code'])
-                print(output['updated'])
-                print(firstip)
-                print(lastip)
-                
-                
-                break
-                
-                #table.put_item(
-                #    Item = {
-                #        'pk': nametype,
-                #        'sk': sortkey,
-                #        'region': region['region'],
-                #        'cidr': iprange,
-                #        'created': output['last_updated_timestamp'],
-                #        'firstip': firstip,
-                #        'lastip': lastip
-                #    } 
-                #)
+                if nametype == 'IPv4#':
+                    netrange = ipaddress.IPv4Network(subnet['ip_prefix'])
+                    first, last = netrange[0], netrange[-1]
+                    firstip = int(ipaddress.IPv4Address(first))
+                    lastip = int(ipaddress.IPv4Address(last))
+                elif nametype == 'IPv6#':
+                    netrange = ipaddress.IPv6Network(subnet['ip_prefix'])
+                    first, last = netrange[0], netrange[-1]
+                    firstip = int(ipaddress.IPv6Address(first))
+                    lastip = int(ipaddress.IPv6Address(last))
+                table.put_item(
+                    Item = {
+                        'pk': nametype,
+                        'sk': sortkey,
+                        'region': subnet['region'],
+                        'cidr': iprange,
+                        'city': subnet['city'],
+                        'country': subnet['alpha2code'],
+                        'created': output['updated'],
+                        'firstip': firstip,
+                        'lastip': lastip
+                    } 
+                )
 
             print('Vultr IP Ranges Updated')
-            #response = client.put_parameter(
-            #    Name = os.environ['SSM_PARAMETER'],
-            #    Value = output['updated'],
-            #    Type = 'String',
-            #    Overwrite = True
-            #)
+            response = client.put_parameter(
+                Name = os.environ['SSM_PARAMETER'],
+                Value = output['updated'],
+                Type = 'String',
+                Overwrite = True
+            )
         else:
             print('No Vultr IP Range Updates')
 
