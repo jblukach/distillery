@@ -5,13 +5,24 @@ import os
 from boto3.dynamodb.conditions import Key
 
 def handler(event, context):
-    
+
+    print(event)
+
     dynamodb = boto3.resource('dynamodb')
     table = dynamodb.Table(os.environ['DYNAMODB_TABLE'])
 
     try:
+        ipaddr = event['ip']            ### SLACK ###
+    except:
+        pass
 
-        ipaddr = event['ip']
+    try:
+        ipaddr = event['rawPath'][1:]   ### URL ###
+    except:
+        pass
+
+    try:
+
         iptype = ipaddress.ip_address(ipaddr)
 
         if iptype.is_multicast == True:
@@ -70,6 +81,7 @@ def handler(event, context):
                 parsed = line.split('#')
                 theresults["cidrs"].append(parsed)
 
+            code = 200
             msg = theresults
 
         elif iptype.version == 6:
@@ -115,14 +127,17 @@ def handler(event, context):
                 parsed = line.split('#')
                 theresults["cidrs"].append(parsed)
 
+            code = 200
             msg = theresults
 
     except:
 
-        msg = {"RequiredFormat": {"ip": "116.129.226.132"}}
+        code = 404
+        msg = 'Where the Internet Ends'
+
         pass
 
     return {
-        'statusCode': 200,
+        'statusCode': code,
         'body': json.dumps(msg)
     }

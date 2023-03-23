@@ -153,6 +153,18 @@ class DistilleryStack(Stack):
             ]
         )
 
+        url = search.add_function_url(
+            auth_type = _lambda.FunctionUrlAuthType.NONE
+        )
+
+        parameter = _ssm.StringParameter(
+            self, 'parameter',
+            description = 'Distillery Lambda URL',
+            parameter_name = '/distillery/lambda/url',
+            string_value = url.url,
+            tier = _ssm.ParameterTier.STANDARD,
+        )
+
         searchlogs = _logs.LogGroup(
             self, 'searchlogs',
             log_group_name = '/aws/lambda/'+search.function_name,
