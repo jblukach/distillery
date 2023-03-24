@@ -139,5 +139,5 @@ def handler(event, context):
 
     return {
         'statusCode': code,
-        'body': json.dumps(msg)
+        'body': json.dumps(msg, indent = 4)
     }
