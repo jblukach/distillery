@@ -8,7 +8,7 @@ Distillery provides AWS Chatbot integration with Slack Channels for cloud IP ran
 @aws invoke cidr --payload {"ip": "116.129.226.132”}
 ```
 
-An RSS feed and website track the ever-changing network IP ranges for the following public clouds.
+##### Public Clouds & SaaS Providers
 
 - Amazon Web Services
 - Cloudflare
@@ -17,6 +17,7 @@ An RSS feed and website track the ever-changing network IP ranges for the follow
 - Microsoft Azure
 - Microsoft o365
 - NetSPI
+- Okta
 - Oracle Cloud
 - Tenable
 - Vultr

@@ -7,8 +7,6 @@ from boto3.dynamodb.conditions import Key
 
 def handler(event, context):
 
-    client = boto3.client('ssm')
-
     dynamodb = boto3.resource('dynamodb')
     table = dynamodb.Table(os.environ['DYNAMODB_TABLE'])
 

@@ -10,17 +10,15 @@ def handler(event, context):
     dynamodb = boto3.resource('dynamodb')
     table = dynamodb.Table(os.environ['DYNAMODB_TABLE'])
 
-    headers = {'User-Agent': 'Distillery Python Client/1.0'}
-    ipv4 = requests.get('https://www.netspi.com/wp-content/uploads/2021/04/allowlist.txt', headers=headers)
+    ipv4 = requests.get('https://s3.amazonaws.com/okta-ip-ranges/ip_ranges.json')
     print('IPv4 Download Status Code: '+str(ipv4.status_code))
 
     if ipv4.status_code == 200:
-        print('Checking NetSPI IPv4 Ranges')
-        object = ipv4.text
-        netspi = list(object.splitlines())
-        for cidr in netspi:
-            if(cidr) and 'Last' not in cidr:
-                sortkey = 'NETSPI#'+cidr
+        print('Checking Okta IPv4 Ranges')
+        output = ipv4.json()
+        for key in output:
+            for cidr in output[key]['ip_ranges']:
+                sortkey = 'OKTA#'+cidr
                 hostmask = cidr.split('/')
                 iptype = ipaddress.ip_address(hostmask[0])
                 nametype = 'IPv'+str(iptype.version)+'#'
@@ -29,7 +27,7 @@ def handler(event, context):
                     KeyConditionExpression = Key('pk').eq(nametype) & Key('sk').eq(sortkey)
                 )
                 if len(response['Items']) == 0:
-                    print('NetSPI IP Ranges Updated')
+                    print('OKTA IP Ranges Updated')
                     netrange = ipaddress.IPv4Network(cidr)
                     first, last = netrange[0], netrange[-1]
                     firstip = int(ipaddress.IPv4Address(first))
@@ -47,5 +45,5 @@ def handler(event, context):
 
     return {
         'statusCode': 200,
-        'body': json.dumps('Download NetSPI IP Ranges')
+        'body': json.dumps('Download Okta IP Ranges')
     }

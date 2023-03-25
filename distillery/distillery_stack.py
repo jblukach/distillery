@@ -832,3 +832,52 @@ class DistilleryStack(Stack):
         vultrevent.add_target(
             _targets.LambdaFunction(vultrcompute)
         )
+
+    ### OKTA CIDRS ###
+
+        oktacompute = _lambda.DockerImageFunction(
+            self, 'oktacompute',
+            code = _lambda.DockerImageCode.from_image_asset('cidr/okta'),
+            timeout = Duration.seconds(900),
+            role = role,
+            environment = dict(
+                DYNAMODB_TABLE = table.table_name
+            ),
+            memory_size = 512
+        )
+
+        oktalogs = _logs.LogGroup(
+            self, 'oktalogs',
+            log_group_name = '/aws/lambda/'+oktacompute.function_name,
+            retention = _logs.RetentionDays.ONE_DAY,
+            removal_policy = RemovalPolicy.DESTROY
+        )
+
+        oktasub = _logs.SubscriptionFilter(
+            self, 'oktasub',
+            log_group = oktalogs,
+            destination = _destinations.LambdaDestination(error),
+            filter_pattern = _logs.FilterPattern.all_terms('ERROR')
+        )
+
+        oktatime = _logs.SubscriptionFilter(
+            self, 'oktatime',
+            log_group = oktalogs,
+            destination = _destinations.LambdaDestination(timeout),
+            filter_pattern = _logs.FilterPattern.all_terms('Task','timed','out')
+        )
+
+        oktaevent = _events.Rule(
+            self, 'oktaevent',
+            schedule = _events.Schedule.cron(
+                minute = '0',
+                hour = '*',
+                month = '*',
+                week_day = '*',
+                year = '*'
+            )
+        )
+
+        oktaevent.add_target(
+            _targets.LambdaFunction(oktacompute)
+        )
