@@ -456,7 +456,7 @@ class DistilleryStack(Stack):
             self, 'cloudflareevent',
             schedule = _events.Schedule.cron(
                 minute = '0',
-                hour = '*',
+                hour = '11',
                 month = '*',
                 week_day = '*',
                 year = '*'
@@ -505,7 +505,7 @@ class DistilleryStack(Stack):
             self, 'doevent',
             schedule = _events.Schedule.cron(
                 minute = '0',
-                hour = '*',
+                hour = '11',
                 month = '*',
                 week_day = '*',
                 year = '*'
@@ -706,7 +706,7 @@ class DistilleryStack(Stack):
             self, 'netspievent',
             schedule = _events.Schedule.cron(
                 minute = '0',
-                hour = '*',
+                hour = '11',
                 month = '*',
                 week_day = '*',
                 year = '*'
@@ -871,7 +871,7 @@ class DistilleryStack(Stack):
             self, 'oktaevent',
             schedule = _events.Schedule.cron(
                 minute = '0',
-                hour = '*',
+                hour = '11',
                 month = '*',
                 week_day = '*',
                 year = '*'
