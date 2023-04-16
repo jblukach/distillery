@@ -13,7 +13,8 @@ def handler(event, context):
     response = client.get_parameter(Name=os.environ['SSM_PARAMETER'])
     prevtoken = response['Parameter']['Value']
 
-    r = requests.get('https://www.microsoft.com/en-us/download/confirmation.aspx?id=56519')
+    headers = {'User-Agent': 'Distillery Python Client/1.0'}
+    r = requests.get('https://www.microsoft.com/en-us/download/confirmation.aspx?id=56519', headers=headers)
     print('Link Status Code: '+str(r.status_code))
 
     staged = r.text
