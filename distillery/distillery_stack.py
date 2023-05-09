@@ -451,8 +451,8 @@ class DistilleryStack(Stack):
         azureevent = _events.Rule(
             self, 'azureevent',
             schedule = _events.Schedule.cron(
-                minute = '0',
-                hour = '*',
+                minute = '11',
+                hour = '11',
                 month = '*',
                 week_day = '*',
                 year = '*'
