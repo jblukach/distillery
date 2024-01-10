@@ -96,6 +96,7 @@ class DistilleryO365(Stack):
         compute = _lambda.Function(
             self, 'compute',
             runtime = _lambda.Runtime.PYTHON_3_12,
+            architecture = _lambda.Architecture.ARM_64,
             code = _lambda.Code.from_asset('sources/o365'),
             timeout = Duration.seconds(900),
             handler = 'o365.handler',
