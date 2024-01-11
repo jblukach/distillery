@@ -10,7 +10,9 @@ from aws_cdk import (
     aws_iam as _iam,
     aws_lambda as _lambda,
     aws_logs as _logs,
-    aws_logs_destinations as _destinations
+    aws_logs_destinations as _destinations,
+    aws_s3 as _s3,
+    aws_s3_deployment as _deployment
 )
 
 from constructs import Construct
@@ -34,10 +36,13 @@ class DistilleryStack(Stack):
 
         cdk_nag.NagSuppressions.add_stack_suppressions(
             self, suppressions = [
+                {"id":"AwsSolutions-S1","reason":"The S3 Bucket has server access logs disabled."},
+                {"id":"AwsSolutions-S2","reason":"The S3 Bucket does not have public access restricted and blocked."},
+                {"id":"AwsSolutions-S5","reason":"The S3 static website bucket either has an open world bucket policy or does not use a CloudFront Origin Access Identity (OAI) in the bucket policy for limited getObject and/or putObject permissions."},
+                {"id":"AwsSolutions-S10","reason":"The S3 Bucket or bucket policy does not require requests to use SSL."},
                 {"id":"AwsSolutions-IAM4","reason":"The IAM user, role, or group uses AWS managed policies."},
                 {"id":"AwsSolutions-IAM5","reason":"The IAM entity contains wildcard permissions and does not have a cdk-nag rule suppression with evidence for those permission."},
                 {"id":"AwsSolutions-L1","reason":"The non-container Lambda function is not configured to use the latest runtime version."},
-                {"id":"AwsSolutions-DDB3","reason":"The DynamoDB table does not have Point-in-time Recovery enabled."},
             ]
         )
 
@@ -59,6 +64,28 @@ class DistilleryStack(Stack):
             self, 'timeout',
             'arn:aws:lambda:'+region+':'+account+':function:shipit-timeout'
         )
+
+    ### S3 BUCKET ###
+
+        bucket = _s3.Bucket(
+            self, 'bucket',
+            encryption = _s3.BucketEncryption.S3_MANAGED,
+            block_public_access = _s3.BlockPublicAccess.BLOCK_ALL,
+            removal_policy = RemovalPolicy.DESTROY,
+            auto_delete_objects = True,
+            enforce_ssl = True,
+            versioned = False
+        )
+
+        copyfiles = _deployment.BucketDeployment(
+            self, 'copyfiles',
+            sources = [
+                _deployment.Source.asset('code')
+            ],
+            destination_bucket = bucket,
+            prune = False
+        )
+
 
     ### IAM ###
 
@@ -93,6 +120,10 @@ class DistilleryStack(Stack):
             layers = [
                 getpublicip
             ]
+        )
+
+        url = search.add_function_url(
+            auth_type = _lambda.FunctionUrlAuthType.NONE
         )
 
         logs = _logs.LogGroup(
@@ -188,8 +219,8 @@ class DistilleryStack(Stack):
             filter_pattern = _logs.FilterPattern.all_terms('Task','timed','out')
         )
 
-        event = _events.Rule(
-            self, 'event',
+        buildevent = _events.Rule(
+            self, 'buildevent',
             schedule = _events.Schedule.cron(
                 minute = '30',
                 hour = '10',
@@ -199,6 +230,92 @@ class DistilleryStack(Stack):
             )
         )
 
-        #event.add_target(
-        #    _targets.LambdaFunction(build)
+        buildevent.add_target(
+            _targets.LambdaFunction(build)
+        )
+
+    ### IAM ###
+
+        deployrole = _iam.Role(
+            self, 'deployrole',
+            assumed_by = _iam.ServicePrincipal(
+                'lambda.amazonaws.com'
+            )
+        )
+
+        deployrole.add_managed_policy(
+            _iam.ManagedPolicy.from_aws_managed_policy_name(
+                'service-role/AWSLambdaBasicExecutionRole'
+            )
+        )
+
+        deployrole.add_to_policy(
+            _iam.PolicyStatement(
+                actions = [
+                    'lambda:UpdateFunctionCode',
+                    's3:GetObject',
+                    's3:PutObject'
+                ],
+                resources = [
+                    '*'
+                ]
+            )
+        )
+
+    ### LAMBDA ###
+
+        deploy = _lambda.Function(
+            self, 'deploy',
+            runtime = _lambda.Runtime.PYTHON_3_12,
+            architecture = _lambda.Architecture.ARM_64,
+            code = _lambda.Code.from_asset('deploy'),
+            timeout = Duration.seconds(900),
+            handler = 'deploy.handler',
+            environment = dict(
+                AWS_ACCOUNT = account,
+                DEPLOY_BUCKET = bucket.bucket_name,
+                DOWN_BUCKET = 'static.tundralabs.net'
+            ),
+            memory_size = 512,
+            retry_attempts = 0,
+            role = deployrole,
+            layers = [
+                getpublicip
+            ]
+        )
+
+        deploylogs = _logs.LogGroup(
+            self, 'deploylogs',
+            log_group_name = '/aws/lambda/'+deploy.function_name,
+            retention = _logs.RetentionDays.ONE_MONTH,
+            removal_policy = RemovalPolicy.DESTROY
+        )
+
+        deploysub = _logs.SubscriptionFilter(
+            self, 'deploysub',
+            log_group = deploylogs,
+            destination = _destinations.LambdaDestination(error),
+            filter_pattern = _logs.FilterPattern.all_terms('ERROR')
+        )
+
+        deploytime = _logs.SubscriptionFilter(
+            self, 'deploytime',
+            log_group = deploylogs,
+            destination = _destinations.LambdaDestination(timeout),
+            filter_pattern = _logs.FilterPattern.all_terms('Task','timed','out')
+        )
+
+        deployevent = _events.Rule(
+            self, 'deployevent',
+            schedule = _events.Schedule.cron(
+                minute = '0',
+                hour = '11',
+                month = '*',
+                week_day = '*',
+                year = '*'
+            )
+        )
+
+        #deployevent.add_target(
+        #    _targets.LambdaFunction(deploy)
         #)
