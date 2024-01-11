@@ -106,6 +106,7 @@ class DistilleryCloudflare(Stack):
                 SOURCE = 'cloudflare'
             ),
             memory_size = 512,
+            retry_attempts = 0,
             role = role,
             layers = [
                 getpublicip,

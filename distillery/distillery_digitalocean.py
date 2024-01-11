@@ -106,6 +106,7 @@ class DistilleryDigitalOcean(Stack):
                 SOURCE = 'digitalocean'
             ),
             memory_size = 512,
+            retry_attempts = 0,
             role = role,
             layers = [
                 getpublicip,
