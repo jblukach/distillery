@@ -274,7 +274,8 @@ class DistilleryStack(Stack):
             environment = dict(
                 AWS_ACCOUNT = account,
                 DEPLOY_BUCKET = bucket.bucket_name,
-                DOWN_BUCKET = 'static.tundralabs.net'
+                DOWN_BUCKET = 'static.tundralabs.net',
+                LAMBDA_FUNCTION = search.function_name
             ),
             memory_size = 512,
             retry_attempts = 0,
@@ -316,6 +317,6 @@ class DistilleryStack(Stack):
             )
         )
 
-        #deployevent.add_target(
-        #    _targets.LambdaFunction(deploy)
-        #)
+        deployevent.add_target(
+            _targets.LambdaFunction(deploy)
+        )
