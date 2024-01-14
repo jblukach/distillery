@@ -1,14 +1,10 @@
 # distillery
 
-Cloud service providers like Amazon Web Service (AWS), Microsoft Azure, Google Cloud Platform (GCP), etc., provide their CIDR network IPv4/6 ranges for consumption. During analysis, we could use WHOIS information to determine ownership of a specific IP address. However, using this OSINT, we can glean additional information on a particular IP address, like possible services operating in specific regions.
-
-Distillery provides AWS Chatbot integration with Slack Channels for cloud IP range lookups.
-
-```
-@aws invoke cidr --payload {"ip": "116.129.226.132”}
-```
+Distillery aims to provide network IP addresses and associated metadata for cloud service providers like AWS, Azure, and GCP. It allows researchers to glean additional context about IP addresses during analysis, such as determining services operating in a specific cloud region using open-source intelligence.
 
 ### Public Clouds & SaaS Providers
+
+At 10 AM UTC daily, the collection of Classless Inter-Domain Routing (CIDR) prefixes occurs from **twenty** sources.
 
 - Amazon Web Services
 - Cloudflare
@@ -21,3 +17,40 @@ Distillery provides AWS Chatbot integration with Slack Channels for cloud IP ran
 - Oracle Cloud
 - Tenable
 - Vultr
+
+### Building SQLite Database
+
+At 10:30 AM UTC daily, the relational database containing the following schema gets generated for distribution.
+
+| Column | Type |
+|:------:|:----:|
+| pk | INTEGER PRIMARY KEY |
+| source | TEXT |
+| service | TEXT |
+| region | TEXT |
+| cidr | BLOB |
+| firstip | INTEGER |
+| lastip | INTEGER |
+
+### Database Distribution
+
+- Download: https://static.tundralabs.net/distillery.sqlite3
+- Verification: https://static.tundralabs.net/distillery.sha256
+- Last Updated: https://static.tundralabs.net/distillery.updated
+- Prefix Count: https://static.tundralabs.net/distillery.count
+
+### Application Usage
+
+At 11:00 AM UTC daily, the API updates with the latest SQLite database.
+
+```
+https://cidr.tundralabs.net/116.129.226.132
+```
+
+or
+
+```
+https://cidr.tundralabs.net
+```
+
+The API will look up the source origination if no IP address is available.
