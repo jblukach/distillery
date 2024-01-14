@@ -5,6 +5,9 @@ import aws_cdk as cdk
 
 from distillery.distillery_amazon import DistilleryAmazon
 from distillery.distillery_azure import DistilleryAzure
+from distillery.distillery_azurechina import DistilleryAzureChina
+from distillery.distillery_azuregermany import DistilleryAzureGermany
+from distillery.distillery_azuregovernment import DistilleryAzureGovernment
 from distillery.distillery_cloudflare import DistilleryCloudflare
 from distillery.distillery_digitalocean import DistilleryDigitalOcean
 from distillery.distillery_google import DistilleryGoogle
@@ -35,6 +38,39 @@ DistilleryAmazon(
 
 DistilleryAzure(
     app, 'DistilleryAzure',
+    env = cdk.Environment(
+        account = os.getenv('CDK_DEFAULT_ACCOUNT'),
+        region = 'us-east-1'
+    ),
+    synthesizer = cdk.DefaultStackSynthesizer(
+        qualifier = '4n6ir'
+    )
+)
+
+DistilleryAzureChina(
+    app, 'DistilleryAzureChina',
+    env = cdk.Environment(
+        account = os.getenv('CDK_DEFAULT_ACCOUNT'),
+        region = 'us-east-1'
+    ),
+    synthesizer = cdk.DefaultStackSynthesizer(
+        qualifier = '4n6ir'
+    )
+)
+
+DistilleryAzureGermany(
+    app, 'DistilleryAzureGermany',
+    env = cdk.Environment(
+        account = os.getenv('CDK_DEFAULT_ACCOUNT'),
+        region = 'us-east-1'
+    ),
+    synthesizer = cdk.DefaultStackSynthesizer(
+        qualifier = '4n6ir'
+    )
+)
+
+DistilleryAzureGovernment(
+    app, 'DistilleryAzureGovernment',
     env = cdk.Environment(
         account = os.getenv('CDK_DEFAULT_ACCOUNT'),
         region = 'us-east-1'
