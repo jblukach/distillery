@@ -15,6 +15,8 @@ from distillery.distillery_googlebots import DistilleryGoogleBots
 from distillery.distillery_googlecloud import DistilleryGoogleCloud
 from distillery.distillery_googlecrawlers import DistilleryGoogleCrawlers
 from distillery.distillery_googlefetchers import DistilleryGoogleFetchers
+from distillery.distillery_jdcloud import DistilleryJDCloud
+from distillery.distillery_microsoft import DistilleryMicrosoft
 from distillery.distillery_netspi import DistilleryNetSpi
 from distillery.distillery_o365 import DistilleryO365
 from distillery.distillery_okta import DistilleryOkta
@@ -148,6 +150,28 @@ DistilleryGoogleCrawlers(
 
 DistilleryGoogleFetchers(
     app, 'DistilleryGoogleFetchers',
+    env = cdk.Environment(
+        account = os.getenv('CDK_DEFAULT_ACCOUNT'),
+        region = 'us-east-1'
+    ),
+    synthesizer = cdk.DefaultStackSynthesizer(
+        qualifier = '4n6ir'
+    )
+)
+
+DistilleryJDCloud(
+    app, 'DistilleryJDCloud',
+    env = cdk.Environment(
+        account = os.getenv('CDK_DEFAULT_ACCOUNT'),
+        region = 'us-east-1'
+    ),
+    synthesizer = cdk.DefaultStackSynthesizer(
+        qualifier = '4n6ir'
+    )
+)
+
+DistilleryMicrosoft(
+    app, 'DistilleryMicrosoft',
     env = cdk.Environment(
         account = os.getenv('CDK_DEFAULT_ACCOUNT'),
         region = 'us-east-1'
