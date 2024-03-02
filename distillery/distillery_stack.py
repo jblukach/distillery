@@ -5,14 +5,16 @@ from aws_cdk import (
     Duration,
     RemovalPolicy,
     Stack,
+    aws_cloudwatch as _cloudwatch,
+    aws_cloudwatch_actions as _actions,
     aws_events as _events,
     aws_events_targets as _targets,
     aws_iam as _iam,
     aws_lambda as _lambda,
     aws_logs as _logs,
-    aws_logs_destinations as _destinations,
     aws_s3 as _s3,
-    aws_s3_deployment as _deployment
+    aws_s3_deployment as _deployment,
+    aws_sns as _sns
 )
 
 from constructs import Construct
@@ -53,16 +55,11 @@ class DistilleryStack(Stack):
             layer_version_arn = 'arn:aws:lambda:'+region+':070176467818:layer:getpublicip:10'
         )
 
-    ### ERROR ###
+    ### TOPIC ###
 
-        error = _lambda.Function.from_function_arn(
-            self, 'error',
-            'arn:aws:lambda:'+region+':'+account+':function:shipit-error'
-        )
-
-        timeout = _lambda.Function.from_function_arn(
-            self, 'timeout',
-            'arn:aws:lambda:'+region+':'+account+':function:shipit-timeout'
+        topic = _sns.Topic.from_topic_arn(
+            self, 'topic',
+            topic_arn = 'arn:aws:sns:'+region+':'+account+':monitor'
         )
 
     ### S3 BUCKET ###
@@ -133,18 +130,18 @@ class DistilleryStack(Stack):
             removal_policy = RemovalPolicy.DESTROY
         )
 
-        sub = _logs.SubscriptionFilter(
-            self, 'sub',
-            log_group = logs,
-            destination = _destinations.LambdaDestination(error),
-            filter_pattern = _logs.FilterPattern.all_terms('ERROR')
+        searchalarm = _cloudwatch.Alarm(
+            self, 'searchalarm',
+            comparison_operator = _cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
+            threshold = 0,
+            evaluation_periods = 1,
+            metric = search.metric_errors(
+                period = Duration.minutes(1)
+            )
         )
 
-        time = _logs.SubscriptionFilter(
-            self, 'time',
-            log_group = logs,
-            destination = _destinations.LambdaDestination(timeout),
-            filter_pattern = _logs.FilterPattern.all_terms('Task','timed','out')
+        searchalarm.add_alarm_action(
+            _actions.SnsAction(topic)
         )
 
     ### IAM ###
@@ -205,18 +202,18 @@ class DistilleryStack(Stack):
             removal_policy = RemovalPolicy.DESTROY
         )
 
-        buildsub = _logs.SubscriptionFilter(
-            self, 'buildsub',
-            log_group = buildlogs,
-            destination = _destinations.LambdaDestination(error),
-            filter_pattern = _logs.FilterPattern.all_terms('ERROR')
+        buildalarm = _cloudwatch.Alarm(
+            self, 'buildalarm',
+            comparison_operator = _cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
+            threshold = 0,
+            evaluation_periods = 1,
+            metric = build.metric_errors(
+                period = Duration.minutes(1)
+            )
         )
 
-        buildtime = _logs.SubscriptionFilter(
-            self, 'buildtime',
-            log_group = buildlogs,
-            destination = _destinations.LambdaDestination(timeout),
-            filter_pattern = _logs.FilterPattern.all_terms('Task','timed','out')
+        buildalarm.add_alarm_action(
+            _actions.SnsAction(topic)
         )
 
         buildevent = _events.Rule(
@@ -292,18 +289,18 @@ class DistilleryStack(Stack):
             removal_policy = RemovalPolicy.DESTROY
         )
 
-        deploysub = _logs.SubscriptionFilter(
-            self, 'deploysub',
-            log_group = deploylogs,
-            destination = _destinations.LambdaDestination(error),
-            filter_pattern = _logs.FilterPattern.all_terms('ERROR')
+        deployalarm = _cloudwatch.Alarm(
+            self, 'deployalarm',
+            comparison_operator = _cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
+            threshold = 0,
+            evaluation_periods = 1,
+            metric = deploy.metric_errors(
+                period = Duration.minutes(1)
+            )
         )
 
-        deploytime = _logs.SubscriptionFilter(
-            self, 'deploytime',
-            log_group = deploylogs,
-            destination = _destinations.LambdaDestination(timeout),
-            filter_pattern = _logs.FilterPattern.all_terms('Task','timed','out')
+        deployalarm.add_alarm_action(
+            _actions.SnsAction(topic)
         )
 
         deployevent = _events.Rule(
