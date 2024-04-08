@@ -47,12 +47,6 @@ At 11:00 AM UTC daily, the API updates with the latest SQLite database.
 https://cidr.tundralabs.net/116.129.226.132
 ```
 
-or
-
-```
-https://cidr.tundralabs.net
-```
-
 The API will look up the source origination if no IP address is available.
 
 ![Distillery](images/distillery.png)

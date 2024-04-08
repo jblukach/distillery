@@ -26,12 +26,12 @@ class DistilleryAzure(Stack):
 
         getpublicip = _lambda.LayerVersion.from_layer_version_arn(
             self, 'getpublicip',
-            layer_version_arn = 'arn:aws:lambda:'+region+':070176467818:layer:getpublicip:10'
+            layer_version_arn = 'arn:aws:lambda:'+region+':070176467818:layer:getpublicip:11'
         )
 
         requests = _lambda.LayerVersion.from_layer_version_arn(
             self, 'requests',
-            layer_version_arn = 'arn:aws:lambda:'+region+':070176467818:layer:requests:2'
+            layer_version_arn = 'arn:aws:lambda:'+region+':070176467818:layer:requests:3'
         )
 
     ### TOPIC ###
@@ -93,7 +93,7 @@ class DistilleryAzure(Stack):
         logs = _logs.LogGroup(
             self, 'logs',
             log_group_name = '/aws/lambda/'+compute.function_name,
-            retention = _logs.RetentionDays.ONE_MONTH,
+            retention = _logs.RetentionDays.ONE_DAY,
             removal_policy = RemovalPolicy.DESTROY
         )
 

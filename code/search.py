@@ -7,33 +7,28 @@ def handler(event, context):
     print(event)
 
     try:
-        iptype = ipaddress.ip_address(event['ip']) ### SLACK ###
-        if iptype.version == 4 or iptype.version == 6:
-            ip = event['ip']
+
+        code = 200
+        ip = event['rawPath'][1:]
+        iptype = ipaddress.ip_address(ip)
+
+        if iptype.version == 4:
+            address = int(ipaddress.IPv4Address(ip))
+        elif iptype.version == 6:
+            address = int(ipaddress.IPv6Address(ip))
+
+        conn = sqlite3.connect('distillery.sqlite3')
+        c = conn.cursor()
+        c.execute("SELECT source, service, region, cidr FROM distillery WHERE firstip <= ? AND lastip >= ?", (address, address))
+        msg = c.fetchall()
+        conn.close()
+
     except:
-        try:                      
-            iptype = ipaddress.ip_address(event['rawPath'][1:]) ### URL ###
-            if iptype.version == 4 or iptype.version == 6:
-                ip = event['rawPath'][1:]
-        except:
-            iptype = ipaddress.ip_address(event['headers']['x-forwarded-for']) ### USER ###
-            if iptype.version == 4 or iptype.version == 6:
-                ip = event['headers']['x-forwarded-for']
-            pass
-        pass
 
-    if iptype.version == 4:
-        address = int(ipaddress.IPv4Address(ip))
-    elif iptype.version == 6:
-        address = int(ipaddress.IPv6Address(ip))
-
-    conn = sqlite3.connect('distillery.sqlite3')
-    c = conn.cursor()
-    c.execute("SELECT source, service, region, cidr FROM distillery WHERE firstip <= ? AND lastip >= ?", (address, address))
-    results = c.fetchall()
-    conn.close()
+        msg = 'Where the Internet Ends'
+        code = 404
 
     return {
-        'statusCode': 200,
-        'body': json.dumps(results, indent = 4)
+        'statusCode': code,
+        'body': json.dumps(msg, indent = 4)
     }

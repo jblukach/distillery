@@ -115,7 +115,7 @@ class DistilleryStack(Stack):
 
         getpublicip = _lambda.LayerVersion.from_layer_version_arn(
             self, 'getpublicip',
-            layer_version_arn = 'arn:aws:lambda:'+region+':070176467818:layer:getpublicip:10'
+            layer_version_arn = 'arn:aws:lambda:'+region+':070176467818:layer:getpublicip:11'
         )
 
     ### TOPIC ###
@@ -189,7 +189,7 @@ class DistilleryStack(Stack):
         logs = _logs.LogGroup(
             self, 'logs',
             log_group_name = '/aws/lambda/'+search.function_name,
-            retention = _logs.RetentionDays.ONE_MONTH,
+            retention = _logs.RetentionDays.ONE_DAY,
             removal_policy = RemovalPolicy.DESTROY
         )
 
@@ -261,7 +261,7 @@ class DistilleryStack(Stack):
         buildlogs = _logs.LogGroup(
             self, 'buildlogs',
             log_group_name = '/aws/lambda/'+build.function_name,
-            retention = _logs.RetentionDays.ONE_MONTH,
+            retention = _logs.RetentionDays.ONE_DAY,
             removal_policy = RemovalPolicy.DESTROY
         )
 
@@ -348,7 +348,7 @@ class DistilleryStack(Stack):
         deploylogs = _logs.LogGroup(
             self, 'deploylogs',
             log_group_name = '/aws/lambda/'+deploy.function_name,
-            retention = _logs.RetentionDays.ONE_MONTH,
+            retention = _logs.RetentionDays.ONE_DAY,
             removal_policy = RemovalPolicy.DESTROY
         )
 
