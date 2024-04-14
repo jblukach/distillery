@@ -57,7 +57,7 @@ def handler(event, context):
     f.write(hasher('/tmp/distillery.sqlite3'))
     f.close()
 
-    f = open('/tmp/distillery.updated','w')
+    f = open('/tmp/last.updated','w')
     f.write(str(datetime.datetime.now()))
     f.close()
 
@@ -70,7 +70,7 @@ def handler(event, context):
     s3.meta.client.upload_file(
         '/tmp/distillery.sqlite3',
         os.environ['UP_BUCKET'],
-        'distillery.sqlite3',
+        'cloud-ip-addresses/distillery.sqlite3',
         ExtraArgs = {
             'ContentType': "application/x-sqlite3"
         }
@@ -79,16 +79,16 @@ def handler(event, context):
     s3.meta.client.upload_file(
         '/tmp/distillery.sha256',
         os.environ['UP_BUCKET'],
-        'distillery.sha256',
+        'cloud-ip-addresses/distillery.sha256',
         ExtraArgs = {
             'ContentType': "text/plain"
         }
     )
 
     s3.meta.client.upload_file(
-        '/tmp/distillery.updated',
+        '/tmp/last.updated',
         os.environ['UP_BUCKET'],
-        'distillery.updated',
+        'cloud-ip-addresses/last.updated',
         ExtraArgs = {
             'ContentType': "text/plain"
         }
@@ -97,7 +97,7 @@ def handler(event, context):
     s3.meta.client.upload_file(
         '/tmp/distillery.count',
         os.environ['UP_BUCKET'],
-        'distillery.count',
+        'cloud-ip-addresses/distillery.count',
         ExtraArgs = {
             'ContentType': "text/plain"
         }

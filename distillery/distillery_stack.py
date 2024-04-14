@@ -248,7 +248,7 @@ class DistilleryStack(Stack):
             environment = dict(
                 AWS_ACCOUNT = account,
                 S3_BUCKET = 'stage.tundralabs.net',
-                UP_BUCKET = 'static.tundralabs.net'
+                UP_BUCKET = 'public-file-browser-files-0affe034d8f7'
             ),
             memory_size = 512,
             retry_attempts = 0,
@@ -334,7 +334,7 @@ class DistilleryStack(Stack):
             environment = dict(
                 AWS_ACCOUNT = account,
                 DEPLOY_BUCKET = bucket.bucket_name,
-                DOWN_BUCKET = 'static.tundralabs.net',
+                DOWN_BUCKET = 'public-file-browser-files-0affe034d8f7',
                 LAMBDA_FUNCTION = search.function_name
             ),
             memory_size = 512,
