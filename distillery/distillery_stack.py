@@ -282,8 +282,8 @@ class DistilleryStack(Stack):
         buildevent = _events.Rule(
             self, 'buildevent',
             schedule = _events.Schedule.cron(
-                minute = '30',
-                hour = '10',
+                minute = '15',
+                hour = '*',
                 month = '*',
                 week_day = '*',
                 year = '*'
@@ -369,8 +369,8 @@ class DistilleryStack(Stack):
         deployevent = _events.Rule(
             self, 'deployevent',
             schedule = _events.Schedule.cron(
-                minute = '0',
-                hour = '11',
+                minute = '30',
+                hour = '*',
                 month = '*',
                 week_day = '*',
                 year = '*'

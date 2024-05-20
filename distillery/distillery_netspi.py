@@ -115,7 +115,7 @@ class DistilleryNetSpi(Stack):
             self, 'event',
             schedule = _events.Schedule.cron(
                 minute = '0',
-                hour = '10',
+                hour = '*',
                 month = '*',
                 week_day = '*',
                 year = '*'
