@@ -10,6 +10,7 @@ from distillery.distillery_azuregermany import DistilleryAzureGermany
 from distillery.distillery_azuregovernment import DistilleryAzureGovernment
 from distillery.distillery_cloudflare import DistilleryCloudflare
 from distillery.distillery_digitalocean import DistilleryDigitalOcean
+from distillery.distillery_fastly import DistilleryFastly
 from distillery.distillery_google import DistilleryGoogle
 from distillery.distillery_googlebots import DistilleryGoogleBots
 from distillery.distillery_googlecloud import DistilleryGoogleCloud
@@ -22,8 +23,10 @@ from distillery.distillery_o365 import DistilleryO365
 from distillery.distillery_okta import DistilleryOkta
 from distillery.distillery_oracle import DistilleryOracle
 from distillery.distillery_stack import DistilleryStack
+from distillery.distillery_tailscale import DistilleryTailscale
 from distillery.distillery_tenable import DistilleryTenable
 from distillery.distillery_vultr import DistilleryVultr
+from distillery.distillery_zscalar import DistilleryZscalar
 
 app = cdk.App()
 
@@ -95,6 +98,17 @@ DistilleryCloudflare(
 
 DistilleryDigitalOcean(
     app, 'DistilleryDigitalOcean',
+    env = cdk.Environment(
+        account = os.getenv('CDK_DEFAULT_ACCOUNT'),
+        region = 'us-east-1'
+    ),
+    synthesizer = cdk.DefaultStackSynthesizer(
+        qualifier = '4n6ir'
+    )
+)
+
+DistilleryFastly(
+    app, 'DistilleryFastly',
     env = cdk.Environment(
         account = os.getenv('CDK_DEFAULT_ACCOUNT'),
         region = 'us-east-1'
@@ -236,6 +250,17 @@ DistilleryStack(
     )
 )
 
+DistilleryTailscale(
+    app, 'DistilleryTailscale',
+    env = cdk.Environment(
+        account = os.getenv('CDK_DEFAULT_ACCOUNT'),
+        region = 'us-east-1'
+    ),
+    synthesizer = cdk.DefaultStackSynthesizer(
+        qualifier = '4n6ir'
+    )
+)
+
 DistilleryTenable(
     app, 'DistilleryTenable',
     env = cdk.Environment(
@@ -249,6 +274,17 @@ DistilleryTenable(
 
 DistilleryVultr(
     app, 'DistilleryVultr',
+    env = cdk.Environment(
+        account = os.getenv('CDK_DEFAULT_ACCOUNT'),
+        region = 'us-east-1'
+    ),
+    synthesizer = cdk.DefaultStackSynthesizer(
+        qualifier = '4n6ir'
+    )
+)
+
+DistilleryZscalar(
+    app, 'DistilleryZscalar',
     env = cdk.Environment(
         account = os.getenv('CDK_DEFAULT_ACCOUNT'),
         region = 'us-east-1'

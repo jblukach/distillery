@@ -4,19 +4,22 @@ Distillery aims to provide network IP addresses and associated metadata for clou
 
 ### Public Clouds & SaaS Providers
 
-At 10 AM UTC daily, the collection of Classless Inter-Domain Routing (CIDR) prefixes occurs from **twenty** sources.
+At 10 AM UTC daily, the collection of Classless Inter-Domain Routing (CIDR) prefixes occurs from **twenty-three** sources.
 
 - Amazon Web Services
 - Cloudflare
 - Digital Ocean
+- Fastly
 - Google Cloud
 - Microsoft Azure
 - Microsoft o365
 - NetSPI
 - Okta
 - Oracle Cloud
+- Tailscale
 - Tenable
 - Vultr
+- Zscalar
 
 ### Building SQLite Database
 
