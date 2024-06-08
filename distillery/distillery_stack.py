@@ -115,7 +115,12 @@ class DistilleryStack(Stack):
 
         getpublicip = _lambda.LayerVersion.from_layer_version_arn(
             self, 'getpublicip',
-            layer_version_arn = 'arn:aws:lambda:'+region+':070176467818:layer:getpublicip:11'
+            layer_version_arn = 'arn:aws:lambda:'+region+':070176467818:layer:getpublicip:12'
+        )
+
+        requests = _lambda.LayerVersion.from_layer_version_arn(
+            self, 'requests',
+            layer_version_arn = 'arn:aws:lambda:'+region+':070176467818:layer:requests:5'
         )
 
     ### TOPIC ###
@@ -146,6 +151,15 @@ class DistilleryStack(Stack):
             prune = False
         )
 
+        upload = _s3.Bucket(
+            self, 'upload',
+            encryption = _s3.BucketEncryption.S3_MANAGED,
+            block_public_access = _s3.BlockPublicAccess.BLOCK_ALL,
+            removal_policy = RemovalPolicy.DESTROY,
+            auto_delete_objects = True,
+            enforce_ssl = True,
+            versioned = False
+        )
 
     ### IAM ###
 
@@ -189,7 +203,7 @@ class DistilleryStack(Stack):
         logs = _logs.LogGroup(
             self, 'logs',
             log_group_name = '/aws/lambda/'+search.function_name,
-            retention = _logs.RetentionDays.ONE_DAY,
+            retention = _logs.RetentionDays.INFINITE,
             removal_policy = RemovalPolicy.DESTROY
         )
 
@@ -248,7 +262,7 @@ class DistilleryStack(Stack):
             environment = dict(
                 AWS_ACCOUNT = account,
                 S3_BUCKET = 'stage.tundralabs.net',
-                UP_BUCKET = 'public-file-browser-files-0affe034d8f7'
+                UP_BUCKET = upload.bucket_name
             ),
             memory_size = 512,
             retry_attempts = 0,
@@ -314,7 +328,8 @@ class DistilleryStack(Stack):
                 actions = [
                     'lambda:UpdateFunctionCode',
                     's3:GetObject',
-                    's3:PutObject'
+                    's3:PutObject',
+                    'ssm:GetParameter'
                 ],
                 resources = [
                     '*'
@@ -334,14 +349,16 @@ class DistilleryStack(Stack):
             environment = dict(
                 AWS_ACCOUNT = account,
                 DEPLOY_BUCKET = bucket.bucket_name,
-                DOWN_BUCKET = 'public-file-browser-files-0affe034d8f7',
-                LAMBDA_FUNCTION = search.function_name
+                DOWN_BUCKET = upload.bucket_name,
+                LAMBDA_FUNCTION = search.function_name,
+                SSM_PARAMETER_GIT = '/github/releases'
             ),
             memory_size = 512,
             retry_attempts = 0,
             role = deployrole,
             layers = [
-                getpublicip
+                getpublicip,
+                requests
             ]
         )
 
