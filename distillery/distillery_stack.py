@@ -14,6 +14,7 @@ from aws_cdk import (
     aws_logs as _logs,
     aws_s3 as _s3,
     aws_s3_deployment as _deployment,
+    aws_ssm as _ssm,
     aws_sns as _sns
 )
 
@@ -151,6 +152,16 @@ class DistilleryStack(Stack):
             prune = False
         )
 
+    ### PARAMETER ###
+
+        parameter = _ssm.StringParameter(
+            self, 'parameter',
+            description = 'Distillery Status Change',
+            parameter_name = '/distillery/status',
+            string_value = 'EMPTY',
+            tier = _ssm.ParameterTier.STANDARD,
+        )
+
     ### IAM ###
 
         role = _iam.Role(
@@ -193,7 +204,7 @@ class DistilleryStack(Stack):
         logs = _logs.LogGroup(
             self, 'logs',
             log_group_name = '/aws/lambda/'+search.function_name,
-            retention = _logs.RetentionDays.INFINITE,
+            retention = _logs.RetentionDays.THIRTEEN_MONTHS,
             removal_policy = RemovalPolicy.DESTROY
         )
 
@@ -319,7 +330,8 @@ class DistilleryStack(Stack):
                     'lambda:UpdateFunctionCode',
                     's3:GetObject',
                     's3:PutObject',
-                    'ssm:GetParameter'
+                    'ssm:GetParameter',
+                    'ssm:PutParameter'
                 ],
                 resources = [
                     '*'
@@ -340,7 +352,8 @@ class DistilleryStack(Stack):
                 AWS_ACCOUNT = account,
                 DEPLOY_BUCKET = bucket.bucket_name,
                 LAMBDA_FUNCTION = search.function_name,
-                SSM_PARAMETER_GIT = '/github/releases'
+                SSM_PARAMETER_GIT = '/github/releases',
+                SSM_PARAMETER_STATUS = parameter.parameter_name
             ),
             memory_size = 512,
             retry_attempts = 0,
