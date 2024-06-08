@@ -4,7 +4,7 @@ Distillery aims to provide network IP addresses and associated metadata for clou
 
 ### Public Clouds & SaaS Providers
 
-At 10 AM UTC daily, the collection of Classless Inter-Domain Routing (CIDR) prefixes occurs from **twenty-three** sources.
+Top of the hour, Classless Inter-Domain Routing (CIDR) prefixes collection occurs from **twenty-three** Cloud and SaaS sources.
 
 - Amazon Web Services
 - Cloudflare
@@ -23,7 +23,7 @@ At 10 AM UTC daily, the collection of Classless Inter-Domain Routing (CIDR) pref
 
 ### Building SQLite Database
 
-At 10:30 AM UTC daily, the relational database containing the following schema gets generated for distribution.
+A quarter past the hour, the relational database containing the following schema gets generated for distribution.
 
 | Column | Type |
 |:------:|:----:|
@@ -35,16 +35,9 @@ At 10:30 AM UTC daily, the relational database containing the following schema g
 | firstip | INTEGER |
 | lastip | INTEGER |
 
-### Database Distribution
-
-- Download: https://static.tundralabs.net/distillery.sqlite3
-- Verification: https://static.tundralabs.net/distillery.sha256
-- Last Updated: https://static.tundralabs.net/distillery.updated
-- Prefix Count: https://static.tundralabs.net/distillery.count
-
 ### Application Usage
 
-At 11:00 AM UTC daily, the API updates with the latest SQLite database.
+Half past the hour, the API updates with the latest SQLite database.
 
 ```
 https://cidr.tundralabs.net/116.129.226.132
