@@ -33,8 +33,8 @@ def handler(event, context):
     )
 
     s3.download_file(
-        os.environ['DOWN_BUCKET'],
-        'cloud-ip-addresses/distillery.sqlite3',
+        os.environ['DEPLOY_BUCKET'],
+        'distillery.sqlite3',
         '/tmp/distillery.sqlite3'
     )
 

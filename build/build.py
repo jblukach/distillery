@@ -37,7 +37,7 @@ def handler(event, context):
     s3.meta.client.upload_file(
         '/tmp/distillery.sqlite3',
         os.environ['UP_BUCKET'],
-        'cloud-ip-addresses/distillery.sqlite3',
+        'distillery.sqlite3',
         ExtraArgs = {
             'ContentType': "application/x-sqlite3"
         }

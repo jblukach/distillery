@@ -151,16 +151,6 @@ class DistilleryStack(Stack):
             prune = False
         )
 
-        upload = _s3.Bucket(
-            self, 'upload',
-            encryption = _s3.BucketEncryption.S3_MANAGED,
-            block_public_access = _s3.BlockPublicAccess.BLOCK_ALL,
-            removal_policy = RemovalPolicy.DESTROY,
-            auto_delete_objects = True,
-            enforce_ssl = True,
-            versioned = False
-        )
-
     ### IAM ###
 
         role = _iam.Role(
@@ -262,7 +252,7 @@ class DistilleryStack(Stack):
             environment = dict(
                 AWS_ACCOUNT = account,
                 S3_BUCKET = 'stage.tundralabs.net',
-                UP_BUCKET = upload.bucket_name
+                UP_BUCKET = bucket.bucket_name
             ),
             memory_size = 512,
             retry_attempts = 0,
@@ -349,7 +339,6 @@ class DistilleryStack(Stack):
             environment = dict(
                 AWS_ACCOUNT = account,
                 DEPLOY_BUCKET = bucket.bucket_name,
-                DOWN_BUCKET = upload.bucket_name,
                 LAMBDA_FUNCTION = search.function_name,
                 SSM_PARAMETER_GIT = '/github/releases'
             ),
