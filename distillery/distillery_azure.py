@@ -24,6 +24,11 @@ class DistilleryAzure(Stack):
 
     ### LAMBDA LAYERS ###
 
+        beautifulsoup4 = _lambda.LayerVersion.from_layer_version_arn(
+            self, 'beautifulsoup4',
+            layer_version_arn = 'arn:aws:lambda:'+region+':070176467818:layer:beautifulsoup4:3'
+        )
+
         getpublicip = _lambda.LayerVersion.from_layer_version_arn(
             self, 'getpublicip',
             layer_version_arn = 'arn:aws:lambda:'+region+':070176467818:layer:getpublicip:12'
@@ -85,6 +90,7 @@ class DistilleryAzure(Stack):
             retry_attempts = 0,
             role = role,
             layers = [
+                beautifulsoup4,
                 getpublicip,
                 requests
             ]

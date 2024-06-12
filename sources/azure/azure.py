@@ -3,19 +3,29 @@ import ipaddress
 import json
 import os
 import requests
+from bs4 import BeautifulSoup
 
 def handler(event, context):
 
     headers = {'User-Agent': 'Distillery (https://github.com/jblukach/distillery)'}
 
-    r = requests.get('https://www.microsoft.com/en-us/download/confirmation.aspx?id=56519', headers=headers)
+    r = requests.get('https://www.microsoft.com/en-us/download/details.aspx?id=56519', headers=headers)
     print('Link Status Code: '+str(r.status_code))
 
-    staged = r.text
-    parsed = staged.split('manually')
-    front = parsed[1].split(' href="')
-    back = front[1].split('" ')
-    link = back[0]
+    soup = BeautifulSoup(r.text, 'html.parser')
+
+    scripts = soup.find_all('script')
+
+    for script in scripts:
+        if 'Azure IP Ranges and Service Tags – Public Cloud' in script.text:
+            for line in script.text.split('\n'):
+                items = line.split(',')
+                for item in items:
+                    if 'url' in item:
+                        parse = item.split('"')
+                        link = parse[3]
+                        break
+            break
 
     r = requests.get(link, headers=headers)
     print('Download Status Code: '+str(r.status_code))
