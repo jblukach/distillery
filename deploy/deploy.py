@@ -49,7 +49,7 @@ def handler(event, context):
 
     if status['Parameter']['Value'] != sha256:
 
-        with zipfile.ZipFile('/tmp/distillery.zip', 'w') as zipf:
+        with zipfile.ZipFile('/tmp/distillery.zip', 'w', compression=zipfile.ZIP_DEFLATED, compresslevel=9) as zipf:
 
             zipf.write(
                 '/tmp/search.py',
@@ -60,6 +60,8 @@ def handler(event, context):
                 '/tmp/distillery.sqlite3',
                 'distillery.sqlite3'
             )
+
+        zipf.close()
 
         s3.upload_file(
             '/tmp/distillery.zip',
