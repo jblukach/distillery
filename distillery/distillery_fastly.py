@@ -62,7 +62,7 @@ class DistilleryFastly(Stack):
                     's3:PutObject'
                 ],
                 resources = [
-                    'arn:aws:s3:::stage.tundralabs.net/*'
+                    'arn:aws:s3:::distillerystagebucket/*'
                 ]
             )
         )
@@ -78,7 +78,7 @@ class DistilleryFastly(Stack):
             handler = 'fastly.handler',
             environment = dict(
                 AWS_ACCOUNT = account,
-                S3_BUCKET = 'stage.tundralabs.net',
+                S3_BUCKET = 'distillerystagebucket',
                 SOURCE = 'fastly'
             ),
             memory_size = 512,

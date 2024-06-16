@@ -62,7 +62,7 @@ class DistilleryAmazon(Stack):
                     's3:PutObject'
                 ],
                 resources = [
-                    'arn:aws:s3:::stage.tundralabs.net/*'
+                    'arn:aws:s3:::distillerystagebucket/*'
                 ]
             )
         )
@@ -78,7 +78,7 @@ class DistilleryAmazon(Stack):
             handler = 'amazon.handler',
             environment = dict(
                 AWS_ACCOUNT = account,
-                S3_BUCKET = 'stage.tundralabs.net',
+                S3_BUCKET = 'distillerystagebucket',
                 SOURCE = 'amazon'
             ),
             memory_size = 512,

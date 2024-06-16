@@ -62,7 +62,7 @@ class DistilleryOracle(Stack):
                     's3:PutObject'
                 ],
                 resources = [
-                    'arn:aws:s3:::stage.tundralabs.net/*'
+                    'arn:aws:s3:::distillerystagebucket/*'
                 ]
             )
         )
@@ -78,7 +78,7 @@ class DistilleryOracle(Stack):
             handler = 'oracle.handler',
             environment = dict(
                 AWS_ACCOUNT = account,
-                S3_BUCKET = 'stage.tundralabs.net',
+                S3_BUCKET = 'distillerystagebucket',
                 SOURCE = 'oracle'
             ),
             memory_size = 512,

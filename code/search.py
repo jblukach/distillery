@@ -10,12 +10,7 @@ def handler(event, context):
 
         code = 200
         ip = event['rawPath'][1:]
-        iptype = ipaddress.ip_address(ip)
-
-        if iptype.version == 4:
-            address = int(ipaddress.IPv4Address(ip))
-        elif iptype.version == 6:
-            address = int(ipaddress.IPv6Address(ip))
+        address = str(int(ipaddress.ip_address(ip)))
 
         conn = sqlite3.connect('distillery.sqlite3')
         c = conn.cursor()

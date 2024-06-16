@@ -163,6 +163,17 @@ class DistilleryStack(Stack):
             prune = False
         )
 
+        distillerystagebucket = _s3.Bucket(
+            self, 'distillerystagebucket',
+            bucket_name = 'distillerystagebucket',
+            encryption = _s3.BucketEncryption.S3_MANAGED,
+            block_public_access = _s3.BlockPublicAccess.BLOCK_ALL,
+            removal_policy = RemovalPolicy.DESTROY,
+            auto_delete_objects = True,
+            enforce_ssl = True,
+            versioned = False
+        )
+
     ### PARAMETER ###
 
         parameter = _ssm.StringParameter(
@@ -273,7 +284,7 @@ class DistilleryStack(Stack):
             handler = 'build.handler',
             environment = dict(
                 AWS_ACCOUNT = account,
-                S3_BUCKET = 'stage.tundralabs.net',
+                S3_BUCKET = 'distillerystagebucket',
                 UP_BUCKET = bucket.bucket_name
             ),
             memory_size = 512,
