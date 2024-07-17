@@ -15,6 +15,9 @@ def handler(event, context):
     if r.status_code == 200:
 
         for cidr in r.json()['hubPrefixes']:
+
+            cidr = cidr.strip()
+
             if ipaddress.ip_network(cidr).version == 4:
                 netrange = ipaddress.IPv4Network(cidr)
                 first, last = netrange[0], netrange[-1]
@@ -38,6 +41,9 @@ def handler(event, context):
     if r.status_code == 200:
 
         for cidr in r.json()['hubPrefixes']:
+
+            cidr = cidr.strip()
+
             if ipaddress.ip_network(cidr).version == 4:
                 netrange = ipaddress.IPv4Network(cidr)
                 first, last = netrange[0], netrange[-1]
