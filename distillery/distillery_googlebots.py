@@ -32,12 +32,12 @@ class DistilleryGoogleBots(Stack):
 
         getpublicip = _lambda.LayerVersion.from_layer_version_arn(
             self, 'getpublicip',
-            layer_version_arn = 'arn:aws:lambda:'+region+':'+extensions.string_value+':layer:getpublicip:12'
+            layer_version_arn = 'arn:aws:lambda:'+region+':'+extensions.string_value+':layer:getpublicip:13'
         )
 
         requests = _lambda.LayerVersion.from_layer_version_arn(
             self, 'requests',
-            layer_version_arn = 'arn:aws:lambda:'+region+':'+extensions.string_value+':layer:requests:5'
+            layer_version_arn = 'arn:aws:lambda:'+region+':'+extensions.string_value+':layer:requests:6'
         )
 
     ### TOPIC ###

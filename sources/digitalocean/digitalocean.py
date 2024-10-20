@@ -31,7 +31,10 @@ def handler(event, context):
                 first, last = netrange[0], netrange[-1]
                 firstip = int(ipaddress.IPv6Address(first))
                 lastip = int(ipaddress.IPv6Address(last))
-            f.write(os.environ['SOURCE']+','+parsed[3]+','+parsed[2]+','+parsed[0]+','+str(firstip)+','+str(lastip)+'\n')
+            if parsed[1] == 'None':
+                f.write(os.environ['SOURCE']+','+os.environ['SOURCE']+','+os.environ['SOURCE']+','+parsed[0]+','+str(firstip)+','+str(lastip)+'\n')
+            else:
+                f.write(os.environ['SOURCE']+','+parsed[3]+','+parsed[2]+','+parsed[0]+','+str(firstip)+','+str(lastip)+'\n')
 
         f.close()
 
