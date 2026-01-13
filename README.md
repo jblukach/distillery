@@ -25,28 +25,33 @@ Top of the hour, Classless Inter-Domain Routing (CIDR) prefixes collection occur
 - Vultr
 - Zscalar
 
-### Building SQLite Database
+## Canonical Data Model
 
-A quarter past the hour, the relational database containing the following schema gets generated for distribution.
-
-| Column | Type |
-|:------:|:----:|
-| pk | INTEGER PRIMARY KEY |
-| source | TEXT |
-| service | TEXT |
-| region | TEXT |
-| cidr | BLOB |
-| firstip | INTEGER |
-| lastip | INTEGER |
-
-### Application Usage
-
-Half past the hour, the API updates with the latest SQLite database.
-
-```
-https://cidr.tundralabs.net/116.129.226.132
-```
-
-The API will look up the source origination if no IP address is available.
-
-![Distillery](images/distillery.png)
+| Id | Name | Type |
+|:--:|:----:|:----:|
+| A  | source | TEXT |
+| B  | cidr | BLOB |
+| C  | firstip | INTEGER |
+| D  | lastip | INTEGER |
+| E  | region | TEXT |
+| F  | service | TEXT |
+| G  | border | TEXT |
+| H  | - | - |
+| I  | - | - |
+| J  | - | - |
+| K  | - | - |
+| L  | - | - |
+| M  | - | - |
+| N  | - | - |
+| O  | - | - |
+| P  | - | - |
+| Q  | - | - |
+| R  | - | - |
+| S  | - | - |
+| T  | - | - |
+| U  | - | - |
+| V  | - | - |
+| W  | - | - |
+| X  | - | - |
+| Y  | - | - |
+| Z  | - | - |
