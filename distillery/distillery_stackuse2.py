@@ -1,7 +1,6 @@
 import datetime
 
 from aws_cdk import (
-    Duration,
     RemovalPolicy,
     Stack,
     aws_iam as _iam,

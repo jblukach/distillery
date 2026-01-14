@@ -30,13 +30,13 @@ Top of the hour, Classless Inter-Domain Routing (CIDR) prefixes collection occur
 | Id | Name | Type |
 |:--:|:----:|:----:|
 | A  | source | TEXT |
-| B  | cidr | BLOB |
-| C  | firstip | INTEGER |
-| D  | lastip | INTEGER |
-| E  | region | TEXT |
-| F  | service | TEXT |
-| G  | border | TEXT |
-| H  | - | - |
+| B  | updated | TEXT |
+| C  | cidr | BLOB |
+| D  | firstip | INTEGER |
+| E  | lastip | INTEGER |
+| F  | region | TEXT |
+| G  | service | TEXT |
+| H  | border | TEXT |
 | I  | - | - |
 | J  | - | - |
 | K  | - | - |
