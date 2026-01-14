@@ -1,19 +1,27 @@
 import boto3
+import datetime
 import ipaddress
 import json
 import os
 import requests
 
 def handler(event, context):
+    
+    year = datetime.datetime.now().strftime('%Y')
+    month = datetime.datetime.now().strftime('%m')
+    day = datetime.datetime.now().strftime('%d')
+    hour = datetime.datetime.now().strftime('%H')
+    minute = datetime.datetime.now().strftime('%M')
+    now = f'{year}-{month}-{day}T{hour}:{minute}Z'
 
     headers = {'User-Agent': 'Distillery (https://github.com/jblukach/distillery)'}
-
     r = requests.get('https://azureipranges.azurewebsites.net/Data/AzureGovernment.json', headers=headers)
     print('Download Status Code: '+str(r.status_code))
 
     if r.status_code == 200:
 
-        f = open('/tmp/'+os.environ['SOURCE']+'.csv', 'w')
+        f = open('/tmp/azuregovernment.csv', 'w')
+        f.write('A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z\n')
 
         output = r.json()
 
@@ -35,16 +43,17 @@ def handler(event, context):
                     region = 'global'
                 else:
                     region = cidr['properties']['region']
-                f.write(os.environ['SOURCE']+','+cidr['properties']['systemService']+','+region+','+ip+','+str(firstip)+','+str(lastip)+'\n')
+                features = ' '.join(cidr['properties']['networkFeatures'])
+                f.write('azure,'+now+','+ip+','+str(firstip)+','+str(lastip)+','+region+','+cidr['properties']['systemService']+','+features+',-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-\n')
 
         f.close()
 
         s3 = boto3.resource('s3')
 
         s3.meta.client.upload_file(
-            '/tmp/'+os.environ['SOURCE']+'.csv',
+            '/tmp/azuregovernment.csv',
             os.environ['S3_BUCKET'],
-            os.environ['SOURCE']+'.csv',
+            'sources/azuregovernment.csv',
             ExtraArgs = {
                 'ContentType': "text/csv"
             }

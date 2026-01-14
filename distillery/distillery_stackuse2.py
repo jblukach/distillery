@@ -62,36 +62,11 @@ class DistilleryStackUse2(Stack):
             tier = _ssm.ParameterTier.STANDARD
         )
 
-        beautifulsoup4 = _lambda.LayerVersion(
-            self, 'beautifulsoup4',
-            layer_version_name = 'beautifulsoup4',
-            description = str(year)+'-'+str(month)+'-'+str(day)+' deployment',
-            code = _lambda.Code.from_bucket(
-                bucket = packages,
-                key = 'beautifulsoup4.zip'
-            ),
-            compatible_architectures = [
-                _lambda.Architecture.ARM_64
-            ],
-            compatible_runtimes = [
-                _lambda.Runtime.PYTHON_3_13
-            ],
-            removal_policy = RemovalPolicy.DESTROY
-        )
-
-        beautifulsoup4parameter = _ssm.StringParameter(
-            self, 'beautifulsoup4parameter',
-            parameter_name = '/layer/beautifulsoup4',
-            string_value = beautifulsoup4.layer_version_arn,
-            description = 'BeautifulSoup4 Lambda Layer ARN',
-            tier = _ssm.ParameterTier.STANDARD
-        )
-
     ### S3 BUCKET ###
 
         staged = _s3.Bucket(
             self, 'staged',
-            bucket_name = 'distillerystageduse2',
+            bucket_name = 'distillery-staged-use2-lukach-io',
             encryption = _s3.BucketEncryption.S3_MANAGED,
             block_public_access = _s3.BlockPublicAccess.BLOCK_ALL,
             removal_policy = RemovalPolicy.DESTROY,
@@ -142,6 +117,53 @@ class DistilleryStackUse2(Stack):
         )
 
         staged.add_to_resource_policy(object_policy)
+
+        research = _s3.Bucket(
+            self, 'research',
+            bucket_name = 'distillery-research-lukach-io',
+            encryption = _s3.BucketEncryption.S3_MANAGED,
+            block_public_access = _s3.BlockPublicAccess.BLOCK_ALL,
+            removal_policy = RemovalPolicy.DESTROY,
+            auto_delete_objects = False,
+            enforce_ssl = True,
+            versioned = False
+        )
+
+        bucket_policy_two = _iam.PolicyStatement(
+            effect = _iam.Effect(
+                'ALLOW'
+            ),
+            principals = [
+                _iam.AnyPrincipal()
+            ],
+            actions = [
+                's3:ListBucket'
+            ],
+            resources = [
+                research.bucket_arn
+            ],
+            conditions = {"StringEquals": {"aws:PrincipalOrgID": organization.string_value}}
+        )
+
+        research.add_to_resource_policy(bucket_policy_two)
+
+        object_policy_two = _iam.PolicyStatement(
+            effect = _iam.Effect(
+                'ALLOW'
+            ),
+            principals = [
+                _iam.AnyPrincipal()
+            ],
+            actions = [
+                's3:GetObject'
+            ],
+            resources = [
+                research.arn_for_objects('*')
+            ],
+            conditions = {"StringEquals": {"aws:PrincipalOrgID": organization.string_value}}
+        )
+
+        research.add_to_resource_policy(object_policy_two)
 
     ### OIDC ###
 

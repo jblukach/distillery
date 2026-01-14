@@ -65,7 +65,7 @@ class DistilleryAmazon(Stack):
             timeout = Duration.seconds(900),
             handler = 'amazon.handler',
             environment = dict(
-                S3_BUCKET = 'distillerystageduse2'
+                S3_BUCKET = 'distillery-staged-use2-lukach-io'
             ),
             memory_size = 1024,
             role = role,

@@ -20,7 +20,7 @@ class DistilleryStackUsw2(Stack):
 
         staged = _s3.Bucket(
             self, 'staged',
-            bucket_name = 'distillerystagedusw2',
+            bucket_name = 'distillery-staged-usw2-lukach-io',
             encryption = _s3.BucketEncryption.S3_MANAGED,
             block_public_access = _s3.BlockPublicAccess.BLOCK_ALL,
             removal_policy = RemovalPolicy.DESTROY,

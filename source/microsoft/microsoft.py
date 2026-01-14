@@ -1,4 +1,5 @@
 import boto3
+import datetime
 import ipaddress
 import json
 import os
@@ -6,10 +7,14 @@ import requests
 
 def handler(event, context):
 
-    ### https://www.microsoft.com/en-us/download/details.aspx?id=53602 ###
+    year = datetime.datetime.now().strftime('%Y')
+    month = datetime.datetime.now().strftime('%m')
+    day = datetime.datetime.now().strftime('%d')
+    hour = datetime.datetime.now().strftime('%H')
+    minute = datetime.datetime.now().strftime('%M')
+    now = f'{year}-{month}-{day}T{hour}:{minute}Z'
 
-    headers = {'User-Agent': 'Distillery (https://github.com/jblukach/distillery)'}
-
+    headers = {'User-Agent': 'Distillery (https://github.com/jblukach/distillery)'} ### https://www.microsoft.com/en-us/download/details.aspx?id=53602 ###
     r = requests.get('https://download.microsoft.com/download/B/2/A/B2AB28E1-DAE1-44E8-A867-4987FE089EBE/msft-public-ips.csv', headers=headers)
     print('Download Status Code: '+str(r.status_code))
 
@@ -19,7 +24,7 @@ def handler(event, context):
         output = list(data.splitlines())
         output.pop(0)
 
-        f = open('/tmp/'+os.environ['SOURCE']+'.csv', 'w')
+        f = open('/tmp/microsoft.csv', 'w')
 
         for cidr in output:
             parsed = cidr.split(',')
@@ -35,16 +40,16 @@ def handler(event, context):
                 first, last = netrange[0], netrange[-1]
                 firstip = int(ipaddress.IPv6Address(first))
                 lastip = int(ipaddress.IPv6Address(last))
-            f.write(os.environ['SOURCE']+','+os.environ['SOURCE']+','+os.environ['SOURCE']+','+parsed[0]+','+str(firstip)+','+str(lastip)+'\n')
+            f.write('microsoft,'+now+','+parsed[0]+','+str(firstip)+','+str(lastip)+',-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-\n')
 
         f.close()
 
         s3 = boto3.resource('s3')
 
         s3.meta.client.upload_file(
-            '/tmp/'+os.environ['SOURCE']+'.csv',
+            '/tmp/microsoft.csv',
             os.environ['S3_BUCKET'],
-            os.environ['SOURCE']+'.csv',
+            'sources/microsoft.csv',
             ExtraArgs = {
                 'ContentType': "text/csv"
             }

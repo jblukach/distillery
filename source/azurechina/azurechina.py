@@ -1,38 +1,27 @@
 import boto3
+import datetime
 import ipaddress
 import json
 import os
 import requests
-from bs4 import BeautifulSoup
 
 def handler(event, context):
 
+    year = datetime.datetime.now().strftime('%Y')
+    month = datetime.datetime.now().strftime('%m')
+    day = datetime.datetime.now().strftime('%d')
+    hour = datetime.datetime.now().strftime('%H')
+    minute = datetime.datetime.now().strftime('%M')
+    now = f'{year}-{month}-{day}T{hour}:{minute}Z'
+
     headers = {'User-Agent': 'Distillery (https://github.com/jblukach/distillery)'}
-
-    r = requests.get('https://www.microsoft.com/en-us/download/details.aspx?id=56519', headers=headers)
-    print('Link Status Code: '+str(r.status_code))
-
-    soup = BeautifulSoup(r.text, 'html.parser')
-
-    scripts = soup.find_all('script')
-
-    for script in scripts:
-        if 'Azure IP Ranges and Service Tags – Public Cloud' in script.text:
-            for line in script.text.split('\n'):
-                items = line.split(',')
-                for item in items:
-                    if 'url' in item:
-                        parse = item.split('"')
-                        link = parse[3]
-                        break
-            break
-
-    r = requests.get(link, headers=headers)
+    r = requests.get('https://azureipranges.azurewebsites.net/Data/China.json', headers=headers)
     print('Download Status Code: '+str(r.status_code))
 
     if r.status_code == 200:
 
-        f = open('/tmp/'+os.environ['SOURCE']+'.csv', 'w')
+        f = open('/tmp/azurechina.csv', 'w')
+        f.write('A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z\n')
 
         output = r.json()
 
@@ -54,16 +43,17 @@ def handler(event, context):
                     region = 'global'
                 else:
                     region = cidr['properties']['region']
-                f.write(os.environ['SOURCE']+','+cidr['properties']['systemService']+','+region+','+ip+','+str(firstip)+','+str(lastip)+'\n')
+                features = ' '.join(cidr['properties']['networkFeatures'])
+                f.write('azure,'+now+','+ip+','+str(firstip)+','+str(lastip)+','+region+','+cidr['properties']['systemService']+','+features+',-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-\n')
 
         f.close()
 
         s3 = boto3.resource('s3')
 
         s3.meta.client.upload_file(
-            '/tmp/'+os.environ['SOURCE']+'.csv',
+            '/tmp/azurechina.csv',
             os.environ['S3_BUCKET'],
-            os.environ['SOURCE']+'.csv',
+            'sources/azurechina.csv',
             ExtraArgs = {
                 'ContentType': "text/csv"
             }
