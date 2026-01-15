@@ -65,7 +65,9 @@ class DistilleryGoogleCloud(Stack):
             timeout = Duration.seconds(900),
             handler = 'googlecloud.handler',
             environment = dict(
-                S3_BUCKET = 'distillery-staged-use2-lukach-io'
+                S3_BUCKET = 'distillery-staged-use2-lukach-io',
+                S3_RESEARCH = 'distillery-research-lukach-io',
+                SOURCE = 'googlecloud'
             ),
             memory_size = 1024,
             role = role,

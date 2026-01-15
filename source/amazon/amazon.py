@@ -1,5 +1,6 @@
 import boto3
 import datetime
+import gzip
 import ipaddress
 import json
 import os
@@ -20,7 +21,7 @@ def handler(event, context):
 
     if r.status_code == 200:
 
-        f = open('/tmp/amazon.csv', 'w')
+        f = open('/tmp/'+os.environ['SOURCE']+'.csv', 'w')
         f.write('A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z\n')
 
         output = r.json()
@@ -30,27 +31,46 @@ def handler(event, context):
             first, last = netrange[0], netrange[-1]
             firstip = int(ipaddress.IPv4Address(first))
             lastip = int(ipaddress.IPv4Address(last))
-            f.write('amazon,'+now+','+cidr['ip_prefix']+','+str(firstip)+','+str(lastip)+','+cidr['region']+','+cidr['service']+','+cidr['network_border_group']+',-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-\n')
+            f.write(os.environ['SOURCE']+','+now+','+cidr['ip_prefix']+','+str(firstip)+','+str(lastip)+','+cidr['region']+','+cidr['service']+','+cidr['network_border_group']+',-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-\n')
 
         for cidr in output['ipv6_prefixes']:
             netrange = ipaddress.IPv6Network(cidr['ipv6_prefix'])
             first, last = netrange[0], netrange[-1]
             firstip = int(ipaddress.IPv6Address(first))
             lastip = int(ipaddress.IPv6Address(last))
-            f.write('amazon,'+now+','+cidr['ipv6_prefix']+','+str(firstip)+','+str(lastip)+','+cidr['region']+','+cidr['service']+','+cidr['network_border_group']+',-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-\n')
+            f.write(os.environ['SOURCE']+','+now+','+cidr['ipv6_prefix']+','+str(firstip)+','+str(lastip)+','+cidr['region']+','+cidr['service']+','+cidr['network_border_group']+',-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-\n')
 
         f.close()
 
         s3 = boto3.resource('s3')
 
         s3.meta.client.upload_file(
-            '/tmp/amazon.csv',
+            '/tmp/'+os.environ['SOURCE']+'.csv',
             os.environ['S3_BUCKET'],
-            'sources/amazon.csv',
+            'sources/'+os.environ['SOURCE']+'.csv',
             ExtraArgs = {
                 'ContentType': "text/csv"
             }
         )
+
+        fname = f'{year}-{month}-{day}-{hour}-{os.environ["SOURCE"]}.csv.gz'
+        fpath = f'/tmp/{fname}'
+        print(fpath)
+
+        with open('/tmp/'+os.environ['SOURCE']+'.csv', 'rb') as f_in:
+            with gzip.open(fpath, 'wb') as f_out:
+                f_out.writelines(f_in)
+
+        s3.meta.client.upload_file(
+            fpath,
+            os.environ['S3_RESEARCH'],
+            'v1/'+fname,
+            ExtraArgs = {
+                'ContentType': "application/gzip"
+            }
+        )
+
+        os.system('ls -lh /tmp')
 
     else:
         print('Download Failed')

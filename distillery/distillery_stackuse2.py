@@ -1,6 +1,7 @@
 import datetime
 
 from aws_cdk import (
+    Duration,
     RemovalPolicy,
     Stack,
     aws_iam as _iam,
@@ -164,6 +165,22 @@ class DistilleryStackUse2(Stack):
         )
 
         research.add_to_resource_policy(object_policy_two)
+
+        temporary = _s3.Bucket(
+            self, 'temporary',
+            bucket_name = 'distillery-temporary-lukach-io',
+            encryption = _s3.BucketEncryption.S3_MANAGED,
+            block_public_access = _s3.BlockPublicAccess.BLOCK_ALL,
+            removal_policy = RemovalPolicy.DESTROY,
+            auto_delete_objects = True,
+            enforce_ssl = True,
+            versioned = False
+        )
+
+        temporary.add_lifecycle_rule(
+            expiration = Duration.days(1),
+            noncurrent_version_expiration = Duration.days(1)
+        )
 
     ### OIDC ###
 
