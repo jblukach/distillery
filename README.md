@@ -7,7 +7,6 @@ Distillery aims to provide network IP addresses and associated metadata for clou
 Top of the hour, Classless Inter-Domain Routing (CIDR) prefixes collection occurs from **twenty-seven** Cloud and SaaS sources.
 
 - Amazon Web Services
-- Censys
 - Cloudflare
 - Digital Ocean
 - Fastly
