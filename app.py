@@ -17,6 +17,10 @@ from sources.distillery_googlecloud import DistilleryGoogleCloud
 from sources.distillery_googlecrawlers import DistilleryGoogleCrawlers
 from sources.distillery_googlefetchers import DistilleryGoogleFetchers
 from sources.distillery_microsoft import DistilleryMicrosoft
+from sources.distillery_zdxbeta import DistilleryZdxBeta
+from sources.distillery_zdxcloud import DistilleryZdxCloud
+from sources.distillery_zdxgov import DistilleryZdxGov
+from sources.distillery_zdxten import DistilleryZdxTen
 from sources.distillery_zscaler import DistilleryZscaler
 from sources.distillery_zscalerbeta import DistilleryZscalerBeta
 from sources.distillery_zscalergov import DistilleryZscalerGov
@@ -173,6 +177,50 @@ DistilleryGoogleFetchers(
 
 DistilleryMicrosoft(
     app, 'DistilleryMicrosoft',
+    env = cdk.Environment(
+        account = os.getenv('CDK_DEFAULT_ACCOUNT'),
+        region = 'us-east-2'
+    ),
+    synthesizer = cdk.DefaultStackSynthesizer(
+        qualifier = 'lukach'
+    )
+)
+
+DistilleryZdxBeta(
+    app, 'DistilleryZdxBeta',
+    env = cdk.Environment(
+        account = os.getenv('CDK_DEFAULT_ACCOUNT'),
+        region = 'us-east-2'
+    ),
+    synthesizer = cdk.DefaultStackSynthesizer(
+        qualifier = 'lukach'
+    )
+)
+
+DistilleryZdxCloud(
+    app, 'DistilleryZdxCloud',
+    env = cdk.Environment(
+        account = os.getenv('CDK_DEFAULT_ACCOUNT'),
+        region = 'us-east-2'
+    ),
+    synthesizer = cdk.DefaultStackSynthesizer(
+        qualifier = 'lukach'
+    )
+)
+
+DistilleryZdxGov(
+    app, 'DistilleryZdxGov',
+    env = cdk.Environment(
+        account = os.getenv('CDK_DEFAULT_ACCOUNT'),
+        region = 'us-east-2'
+    ),
+    synthesizer = cdk.DefaultStackSynthesizer(
+        qualifier = 'lukach'
+    )
+)
+
+DistilleryZdxTen(
+    app, 'DistilleryZdxTen',
     env = cdk.Environment(
         account = os.getenv('CDK_DEFAULT_ACCOUNT'),
         region = 'us-east-2'
