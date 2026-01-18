@@ -24,7 +24,7 @@ def handler(event, context):
 
         f = open('/tmp/'+os.environ['SOURCE']+'.csv', 'w')
         f.write('A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z\n')
-
+        
         for content in current.json()['content']:
             for ip in content['IPs']:
                 if '/' not in ip and ':' not in ip:
@@ -56,25 +56,6 @@ def handler(event, context):
                 'ContentType': "text/csv"
             }
         )
-
-        fname = f'{year}-{month}-{day}-{hour}-{os.environ["SOURCE"]}.csv.gz'
-        fpath = f'/tmp/{fname}'
-        print(fpath)
-
-        with open('/tmp/'+os.environ['SOURCE']+'.csv', 'rb') as f_in:
-            with gzip.open(fpath, 'wb') as f_out:
-                f_out.writelines(f_in)
-
-        s3.meta.client.upload_file(
-            fpath,
-            os.environ['S3_RESEARCH'],
-            'v1/'+fname,
-            ExtraArgs = {
-                'ContentType': "application/gzip"
-            }
-        )
-
-        os.system('ls -lh /tmp')
 
     else:
         print('Download Failed')

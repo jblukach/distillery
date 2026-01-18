@@ -1,10 +1,16 @@
 import boto3
+import datetime
 import csv
 import json
 import os
 import sqlite3
 
 def handler(event, context):
+
+    year = datetime.datetime.now().strftime('%Y')
+    month = datetime.datetime.now().strftime('%m')
+    day = datetime.datetime.now().strftime('%d')
+    hour = datetime.datetime.now().strftime('%H')
 
     if os.path.exists('/tmp/distillery.sqlite3'):
         os.remove('/tmp/distillery.sqlite3')
@@ -39,6 +45,15 @@ def handler(event, context):
         '/tmp/distillery.sqlite3',
         os.environ['S3_BUCKET'],
         'distillery.sqlite3',
+        ExtraArgs = {
+            'ContentType': "application/x-sqlite3"
+        }
+    )
+
+    s3.meta.client.upload_file(
+        '/tmp/distillery.sqlite3',
+        os.environ['S3_RESEARCH'],
+        year+'/'+month+'/'+day+'/'+hour+'/distillery.sqlite3',
         ExtraArgs = {
             'ContentType': "application/x-sqlite3"
         }

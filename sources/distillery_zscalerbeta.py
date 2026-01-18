@@ -66,7 +66,6 @@ class DistilleryZscalerBeta(Stack):
             handler = 'zscalerbeta.handler',
             environment = dict(
                 S3_BUCKET = 'distillery-staged-use2-lukach-io',
-                S3_RESEARCH = 'distillery-research-lukach-io',
                 SOURCE = 'zscalerbeta'
             ),
             memory_size = 1024,

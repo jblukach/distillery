@@ -66,7 +66,6 @@ class DistilleryZpaBeta(Stack):
             handler = 'zpabeta.handler',
             environment = dict(
                 S3_BUCKET = 'distillery-staged-use2-lukach-io',
-                S3_RESEARCH = 'distillery-research-lukach-io',
                 SOURCE = 'zpabeta'
             ),
             memory_size = 1024,

@@ -66,7 +66,6 @@ class DistilleryZsLogin(Stack):
             handler = 'zslogin.handler',
             environment = dict(
                 S3_BUCKET = 'distillery-staged-use2-lukach-io',
-                S3_RESEARCH = 'distillery-research-lukach-io',
                 SOURCE = 'zslogin'
             ),
             memory_size = 1024,

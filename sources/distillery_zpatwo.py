@@ -66,7 +66,6 @@ class DistilleryZpaTwo(Stack):
             handler = 'zpatwo.handler',
             environment = dict(
                 S3_BUCKET = 'distillery-staged-use2-lukach-io',
-                S3_RESEARCH = 'distillery-research-lukach-io',
                 SOURCE = 'zpatwo'
             ),
             memory_size = 1024,

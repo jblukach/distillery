@@ -57,6 +57,7 @@ class DistilleryDeploy(Stack):
             handler = 'deploy.handler',
             environment = dict(
                 S3_BUCKET = 'distillery-staged-use2-lukach-io',
+                S3_RESEARCH = 'distillery-research-lukach-io',
                 S3_USE1 = 'distillery-staged-use1-lukach-io',
                 S3_USW2 = 'distillery-staged-usw2-lukach-io',
                 LAMBDA_FUNCTION_USE1 = 'arn:aws:lambda:us-east-1:'+str(account)+':function:cidr',

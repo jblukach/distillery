@@ -66,7 +66,6 @@ class DistilleryAmazon(Stack):
             handler = 'amazon.handler',
             environment = dict(
                 S3_BUCKET = 'distillery-staged-use2-lukach-io',
-                S3_RESEARCH = 'distillery-research-lukach-io',
                 SOURCE = 'amazon'
             ),
             memory_size = 1024,
