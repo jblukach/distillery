@@ -10,24 +10,25 @@ def handler(event, context):
         os.remove('/tmp/distillery.sqlite3')
 
     db = sqlite3.connect('/tmp/distillery.sqlite3')
-    db.execute('CREATE TABLE IF NOT EXISTS distillery (pk INTEGER PRIMARY KEY, source TEXT, service TEXT, region TEXT, cidr  BLOB, firstip INTEGER, lastip INTEGER)')
+    db.execute('CREATE TABLE IF NOT EXISTS distillery (pk INTEGER PRIMARY KEY, source TEXT, updated TEXT, cidr  BLOB, firstip INTEGER, lastip INTEGER, region TEXT, service TEXT, border TEXT, I TEXT, J TEXT, K TEXT, L TEXT, M TEXT, N TEXT, O TEXT, P TEXT, Q TEXT, R TEXT, S TEXT, T TEXT, U TEXT, V TEXT, W TEXT, X TEXT, Y TEXT, Z TEXT)')
     db.execute('CREATE INDEX firstip_index ON distillery (firstip)')
     db.execute('CREATE INDEX lastip_index ON distillery (lastip)')
 
     s3 = boto3.client('s3')
-    files = s3.list_objects(Bucket=os.environ['S3_BUCKET'])['Contents']
+    files = s3.list_objects(Bucket=os.environ['S3_BUCKET'],Prefix='sources/')['Contents']
 
     for file in files:
         print(file['Key'])
-        s3.download_file(os.environ['S3_BUCKET'], file['Key'], '/tmp/'+file['Key'])
+        fname = file['Key'].split('/')[-1]
+        s3.download_file(os.environ['S3_BUCKET'], file['Key'], '/tmp/'+fname)
 
-        with open('/tmp/'+file['Key']) as f:
+        with open('/tmp/'+fname) as f:
             csv_reader = csv.reader(f, delimiter=',')
             for row in csv_reader:
-                db.execute('INSERT INTO distillery (source, service, region, cidr, firstip, lastip) VALUES (?, ?, ?, ?, ?, ?)', (row[0], row[1], row[2], row[3], row[4], row[5]))
+                db.execute('INSERT INTO distillery (source, updated, cidr, firstip, lastip, region, service, border, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', (row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9], row[10], row[11], row[12], row[13], row[14], row[15], row[16], row[17], row[18], row[19], row[20], row[21], row[22], row[23], row[24], row[25]))
 
         f.close()
-        os.remove('/tmp/'+file['Key'])
+        os.remove('/tmp/'+fname)
 
     db.commit()
     db.close()
@@ -36,7 +37,7 @@ def handler(event, context):
 
     s3.meta.client.upload_file(
         '/tmp/distillery.sqlite3',
-        os.environ['UP_BUCKET'],
+        os.environ['S3_BUCKET'],
         'distillery.sqlite3',
         ExtraArgs = {
             'ContentType': "application/x-sqlite3"

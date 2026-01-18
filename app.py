@@ -3,6 +3,8 @@ import os
 
 import aws_cdk as cdk
 
+from distillery.distillery_build import DistilleryBuild
+from distillery.distillery_deploy import DistilleryDeploy
 from distillery.distillery_stackuse1 import DistilleryStackUse1
 from distillery.distillery_stackuse2 import DistilleryStackUse2
 from distillery.distillery_stackusw2 import DistilleryStackUsw2
@@ -36,6 +38,28 @@ from sources.distillery_zslogin import DistilleryZsLogin
 from sources.distillery_zsloginbeta import DistilleryZsLoginBeta
 
 app = cdk.App()
+
+DistilleryBuild(
+    app, 'DistilleryBuild',
+    env = cdk.Environment(
+        account = os.getenv('CDK_DEFAULT_ACCOUNT'),
+        region = 'us-east-2'
+    ),
+    synthesizer = cdk.DefaultStackSynthesizer(
+        qualifier = 'lukach'
+    )
+)
+
+DistilleryDeploy(
+    app, 'DistilleryDeploy',
+    env = cdk.Environment(
+        account = os.getenv('CDK_DEFAULT_ACCOUNT'),
+        region = 'us-east-2'
+    ),
+    synthesizer = cdk.DefaultStackSynthesizer(
+        qualifier = 'lukach'
+    )
+)
 
 DistilleryStackUse1(
     app, 'DistilleryStackUse1',

@@ -4,6 +4,7 @@ from aws_cdk import (
     Duration,
     RemovalPolicy,
     Stack,
+    aws_glue_alpha as _glue,
     aws_iam as _iam,
     aws_lambda as _lambda,
     aws_s3 as _s3,
@@ -180,6 +181,134 @@ class DistilleryStackUse2(Stack):
         temporary.add_lifecycle_rule(
             expiration = Duration.days(1),
             noncurrent_version_expiration = Duration.days(1)
+        )
+
+    ### GLUE DATABASE ###
+
+        database = _glue.Database(
+            self, 'database',
+            database_name = 'distillery'
+        )
+
+    ### GLUE TABLES ###
+
+        cidr =  _glue.Table(
+            self, 'cidr',
+            bucket = research,
+            s3_prefix = 'v1/',
+            database = database,
+            table_name = 'cidr',
+            columns = [
+                _glue.Column(
+                    name = 'A',
+                    type = _glue.Schema.STRING
+                ),
+                _glue.Column(
+                    name = 'B',
+                    type = _glue.Schema.STRING
+                ),
+                _glue.Column(
+                    name = 'C',
+                    type = _glue.Schema.STRING
+                ),
+                _glue.Column(
+                    name = 'D',
+                    type = _glue.Schema.INTEGER
+                ),
+                _glue.Column(
+                    name = 'E',
+                    type = _glue.Schema.INTEGER
+                ),
+                _glue.Column(
+                    name = 'F',
+                    type = _glue.Schema.STRING
+                ),
+                _glue.Column(
+                    name = 'G',
+                    type = _glue.Schema.STRING
+                ),
+                _glue.Column(
+                    name = 'H',
+                    type = _glue.Schema.STRING
+                ),
+                _glue.Column(
+                    name = 'I',
+                    type = _glue.Schema.STRING
+                ),
+                _glue.Column(
+                    name = 'J',
+                    type = _glue.Schema.STRING
+                ),
+                _glue.Column(
+                    name = 'K',
+                    type = _glue.Schema.STRING
+                ),
+                _glue.Column(
+                    name = 'L',
+                    type = _glue.Schema.STRING
+                ),
+                _glue.Column(
+                    name = 'M',
+                    type = _glue.Schema.STRING
+                ),
+                _glue.Column(
+                    name = 'N',
+                    type = _glue.Schema.STRING
+                ),
+                _glue.Column(
+                    name = 'O',
+                    type = _glue.Schema.STRING
+                ),
+                _glue.Column(
+                    name = 'P',
+                    type = _glue.Schema.STRING
+                ),
+                _glue.Column(
+                    name = 'Q',
+                    type = _glue.Schema.STRING
+                ),
+                _glue.Column(
+                    name = 'R',
+                    type = _glue.Schema.STRING
+                ),
+                _glue.Column(
+                    name = 'S',
+                    type = _glue.Schema.STRING
+                ),
+                _glue.Column(
+                    name = 'T',
+                    type = _glue.Schema.STRING
+                ),
+                _glue.Column(
+                    name = 'U',
+                    type = _glue.Schema.STRING
+                ),
+                _glue.Column(
+                    name = 'V',
+                    type = _glue.Schema.STRING
+                ),
+                _glue.Column(
+                    name = 'W',
+                    type = _glue.Schema.STRING
+                ),
+                _glue.Column(
+                    name = 'X',
+                    type = _glue.Schema.STRING
+                ),
+                _glue.Column(
+                    name = 'Y',
+                    type = _glue.Schema.STRING
+                ),
+                _glue.Column(
+                    name = 'Z',
+                    type = _glue.Schema.STRING
+                )
+            ],
+            data_format = _glue.DataFormat(
+                input_format = _glue.InputFormat.TEXT,
+                output_format = _glue.OutputFormat.PARQUET,
+                serialization_library = _glue.SerializationLibrary.OPEN_CSV
+            )
         )
 
     ### OIDC ###
