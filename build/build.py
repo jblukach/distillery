@@ -1,6 +1,7 @@
 import boto3
 import datetime
 import csv
+import gzip
 import json
 import os
 import sqlite3
@@ -50,14 +51,20 @@ def handler(event, context):
         }
     )
 
+    with open('/tmp/distillery.sqlite3', 'rb') as f_in:
+        with gzip.open('/tmp/distillery.sqlite3.gz', 'wb') as f_out:
+            f_out.writelines(f_in)
+
     s3.meta.client.upload_file(
-        '/tmp/distillery.sqlite3',
+        '/tmp/distillery.sqlite3.gz',
         os.environ['S3_RESEARCH'],
-        year+'/'+month+'/'+day+'/'+hour+'/distillery.sqlite3',
+        year+'/'+month+'/'+day+'/'+hour+'/distillery.sqlite3.gz',
         ExtraArgs = {
-            'ContentType': "application/x-sqlite3"
+            'ContentType': "application/gzip"
         }
     )
+
+    os.system('ls -lh /tmp')
 
     return {
         'statusCode': 200,

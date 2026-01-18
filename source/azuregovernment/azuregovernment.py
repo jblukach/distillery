@@ -1,6 +1,5 @@
 import boto3
 import datetime
-import gzip
 import ipaddress
 import json
 import os
@@ -57,7 +56,7 @@ def handler(event, context):
             ExtraArgs = {
                 'ContentType': "text/csv"
             }
-        )f.write('A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z\n')
+        )
 
     else:
         print('Download Failed')
