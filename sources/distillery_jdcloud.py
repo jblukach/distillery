@@ -12,32 +12,24 @@ from aws_cdk import (
 
 from constructs import Construct
 
-class DistilleryLinode(Stack):
+class DistilleryJdcloud(Stack):
 
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
-        account = Stack.of(self).account
-        region = Stack.of(self).region
-
     ### LAMBDA LAYERS ###
 
-        extensions = _ssm.StringParameter.from_string_parameter_attributes(
-            self, 'extensions',
-            parameter_name = '/extensions/account'
-        )
-
-        getpublicip = _lambda.LayerVersion.from_layer_version_arn(
-            self, 'getpublicip',
-            layer_version_arn = 'arn:aws:lambda:'+region+':'+extensions.string_value+':layer:getpublicip:14'
+        layer = _ssm.StringParameter.from_string_parameter_attributes(
+            self, 'layer',
+            parameter_name = '/layer/requests'
         )
 
         requests = _lambda.LayerVersion.from_layer_version_arn(
             self, 'requests',
-            layer_version_arn = 'arn:aws:lambda:'+region+':'+extensions.string_value+':layer:requests:7'
+            layer_version_arn = layer.string_value
         )
 
-    ### IAM ###
+    ### IAM ROLE ###
 
         role = _iam.Role(
             self, 'role',
@@ -58,30 +50,27 @@ class DistilleryLinode(Stack):
                     's3:PutObject'
                 ],
                 resources = [
-                    'arn:aws:s3:::distillerystagebucket/*'
+                    '*'
                 ]
             )
         )
 
-    ### LAMBDA ###
+    ### LAMBDA FUNCTION ###
 
         compute = _lambda.Function(
             self, 'compute',
             runtime = _lambda.Runtime.PYTHON_3_13,
             architecture = _lambda.Architecture.ARM_64,
-            code = _lambda.Code.from_asset('sources/linode'),
+            code = _lambda.Code.from_asset('source/jdcloud'),
             timeout = Duration.seconds(900),
-            handler = 'linode.handler',
+            handler = 'jdcloud.handler',
             environment = dict(
-                AWS_ACCOUNT = account,
-                S3_BUCKET = 'distillerystagebucket',
-                SOURCE = 'linode'
+                S3_BUCKET = 'distillery-staged-use2-lukach-io',
+                SOURCE = 'jdcloud'
             ),
-            memory_size = 512,
-            retry_attempts = 0,
+            memory_size = 1024,
             role = role,
             layers = [
-                getpublicip,
                 requests
             ]
         )
@@ -89,7 +78,7 @@ class DistilleryLinode(Stack):
         logs = _logs.LogGroup(
             self, 'logs',
             log_group_name = '/aws/lambda/'+compute.function_name,
-            retention = _logs.RetentionDays.ONE_DAY,
+            retention = _logs.RetentionDays.ONE_WEEK,
             removal_policy = RemovalPolicy.DESTROY
         )
 
@@ -97,7 +86,7 @@ class DistilleryLinode(Stack):
             self, 'event',
             schedule = _events.Schedule.cron(
                 minute = '0',
-                hour = '*',
+                hour = '11',
                 month = '*',
                 week_day = '*',
                 year = '*'
