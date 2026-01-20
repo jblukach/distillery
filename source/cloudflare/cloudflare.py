@@ -15,29 +15,37 @@ def handler(event, context):
     now = f'{year}-{month}-{day}T{hour}:{minute}Z'
 
     headers = {'User-Agent': 'Distillery (https://github.com/jblukach/distillery)'}
-    r = requests.get('https://ip-ranges.amazonaws.com/ip-ranges.json', headers=headers)
-    print('Download Status Code: '+str(r.status_code))
 
-    if r.status_code == 200:
+    ipv4 = requests.get('https://www.cloudflare.com/ips-v4', headers=headers)
+    print('Download Status Code: '+str(ipv4.status_code))
+
+    ipv6 = requests.get('https://www.cloudflare.com/ips-v6', headers=headers)
+    print('Download Status Code: '+str(ipv6.status_code))
+
+    if ipv4.status_code == 200 and ipv6.status_code == 200:
 
         f = open('/tmp/'+os.environ['SOURCE']+'.csv', 'w')
         f.write('A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z\n')
 
-        output = r.json()
+        data = ipv4.text
+        output = list(data.splitlines())
 
-        for cidr in output['prefixes']:
-            netrange = ipaddress.IPv4Network(cidr['ip_prefix'])
+        for cidr in output:
+            netrange = ipaddress.IPv4Network(cidr)
             first, last = netrange[0], netrange[-1]
             firstip = int(ipaddress.IPv4Address(first))
             lastip = int(ipaddress.IPv4Address(last))
-            f.write(os.environ['SOURCE']+','+now+','+cidr['ip_prefix']+','+str(firstip)+','+str(lastip)+','+cidr['region']+','+cidr['service']+','+cidr['network_border_group']+',-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-\n')
+            f.write(os.environ['SOURCE']+','+now+','+cidr+','+str(firstip)+','+str(lastip)+',-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-\n')
 
-        for cidr in output['ipv6_prefixes']:
-            netrange = ipaddress.IPv6Network(cidr['ipv6_prefix'])
+        data = ipv6.text
+        output = list(data.splitlines())
+
+        for cidr in output:
+            netrange = ipaddress.IPv6Network(cidr)
             first, last = netrange[0], netrange[-1]
             firstip = int(ipaddress.IPv6Address(first))
             lastip = int(ipaddress.IPv6Address(last))
-            f.write(os.environ['SOURCE']+','+now+','+cidr['ipv6_prefix']+','+str(firstip)+','+str(lastip)+','+cidr['region']+','+cidr['service']+','+cidr['network_border_group']+',-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-\n')
+            f.write(os.environ['SOURCE']+','+now+','+cidr+','+str(firstip)+','+str(lastip)+',-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-\n')
 
         f.close()
 
