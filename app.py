@@ -9,11 +9,14 @@ from distillery.distillery_stackuse1 import DistilleryStackUse1
 from distillery.distillery_stackuse2 import DistilleryStackUse2
 from distillery.distillery_stackusw2 import DistilleryStackUsw2
 from sources.distillery_amazon import DistilleryAmazon
+from sources.distillery_atlassian import DistilleryAtlassian
 from sources.distillery_azure import DistilleryAzure
 from sources.distillery_azurechina import DistilleryAzureChina
 from sources.distillery_azuregermany import DistilleryAzureGermany
 from sources.distillery_azuregovernment import DistilleryAzureGovernment
+from sources.distillery_bingbot import DistilleryBingbot
 from sources.distillery_cloudflare import DistilleryCloudflare
+from sources.distillery_datadog import DistilleryDatadog
 from sources.distillery_digitalocean import DistilleryDigitalOcean
 from sources.distillery_fastly import DistilleryFastly
 from sources.distillery_github import DistilleryGithub
@@ -22,6 +25,7 @@ from sources.distillery_googlebots import DistilleryGoogleBots
 from sources.distillery_googlecloud import DistilleryGoogleCloud
 from sources.distillery_googlecrawlers import DistilleryGoogleCrawlers
 from sources.distillery_googlefetchers import DistilleryGoogleFetchers
+from sources.distillery_icloudprivate import DistilleryIcloudprivate
 from sources.distillery_jdcloud import DistilleryJdcloud
 from sources.distillery_linode import DistilleryLinode
 from sources.distillery_microsoft import DistilleryMicrosoft
@@ -32,7 +36,13 @@ from sources.distillery_o365usdod import DistilleryO365USDod
 from sources.distillery_o365usgov import DistilleryO365USGov
 from sources.distillery_o365world import DistilleryO365World
 from sources.distillery_okta import DistilleryOkta
+from sources.distillery_openaibot import DistilleryOpenaibot
+from sources.distillery_openaisearch import DistilleryOpenaisearch
+from sources.distillery_openaiuser import DistilleryOpenaiuser
 from sources.distillery_oracle import DistilleryOracle
+from sources.distillery_perplexitybot import DistilleryPerplexitybot
+from sources.distillery_perplexityuser import DistilleryPerplexityuser
+from sources.distillery_salesforce import DistillerySalesforce
 from sources.distillery_tailscale import DistilleryTailscale
 from sources.distillery_tenable import DistilleryTenable
 from sources.distillery_vultr import DistilleryVultr

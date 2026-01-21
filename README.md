@@ -1,28 +1,79 @@
 # distillery
 
-Distillery aims to provide network IP addresses and associated metadata for cloud service providers like AWS, Azure, and GCP. It allows researchers to glean additional context about IP addresses during analysis, such as determining services operating in a specific cloud region using open-source intelligence.
+**Distillery** is an open-source intelligence (OSINT) utility that allows researchers and analysts to glean additional context about IP addresses during investigations. It enriches IPs with CIDR ownership, cloud provider attribution, and inferred cloud regions to help identify services operating within specific infrastructure environments.
 
-### Public Clouds & SaaS Providers
+Distillery is particularly useful for:
 
-Top of the hour, Classless Inter-Domain Routing (CIDR) prefixes collection occurs from **twenty-seven** Cloud and SaaS sources.
+- Threat Intelligence Analysis
+- Incident Response
+- Network Forensics
+- Cloud Infrastructure Research
 
-- Amazon Web Services
+---
+
+## API Usage
+
+🔗 **[https://api.lukach.io/net/cidr?8.8.8.8](https://api.lukach.io/net/cidr?8.8.8.8)**
+
+```json
+{
+    "ip": "8.8.8.8",
+    "int": "134744072",
+    "cidr": [
+        [
+            "google",
+            "2026-01-21T11:00Z",
+            "8.8.8.0/24",
+            134744064,
+            134744319,
+            "-",
+            "-",
+            "-"
+        ]
+    ],
+    "region": "us-east-1"
+}
+```
+
+---
+
+## Use Cases
+
+- Determine whether an IP belongs to a major cloud provider
+- Identify services running in specific cloud regions
+- Enhance SIEM, SOAR, or threat intelligence pipelines
+- Support investigative and attribution workflows
+
+---
+
+## Public Clouds & SaaS Providers
+
+At **11:00 AM UTC**, the Classless Inter-Domain Routing (CIDR) prefixes are collected from this list of Cloud and SaaS sources.
+
+- Amazon
+- Atlassian
 - Cloudflare
+- Datadog
 - Digital Ocean
 - Fastly
 - GitHub
-- Google Cloud
+- Google
+- iCloud
 - Linode
-- Microsoft Azure
-- Microsoft o365
+- Microsoft
 - NetSPI
 - New Relic
 - Okta
+- OpenAI
 - Oracle Cloud
+- Perplexity
+- Salesforce
 - Tailscale
 - Tenable
 - Vultr
 - Zscalar
+
+---
 
 ## Canonical Data Model
 
@@ -54,3 +105,5 @@ Top of the hour, Classless Inter-Domain Routing (CIDR) prefixes collection occur
 | X  | - | - |
 | Y  | - | - |
 | Z  | - | - |
+
+---
