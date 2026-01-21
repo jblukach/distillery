@@ -26,18 +26,12 @@ def handler(event, context):
         output = r.json()
 
         for cidr in output['prefixes']:
-            netrange = ipaddress.IPv4Network(cidr['ip_prefix'])
-            first, last = netrange[0], netrange[-1]
-            firstip = int(ipaddress.IPv4Address(first))
-            lastip = int(ipaddress.IPv4Address(last))
-            f.write(os.environ['SOURCE']+','+now+','+cidr['ip_prefix']+','+str(firstip)+','+str(lastip)+','+cidr['region']+','+cidr['service']+','+cidr['network_border_group']+',-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-\n')
-
-        for cidr in output['ipv6_prefixes']:
-            netrange = ipaddress.IPv6Network(cidr['ipv6_prefix'])
-            first, last = netrange[0], netrange[-1]
-            firstip = int(ipaddress.IPv6Address(first))
-            lastip = int(ipaddress.IPv6Address(last))
-            f.write(os.environ['SOURCE']+','+now+','+cidr['ipv6_prefix']+','+str(firstip)+','+str(lastip)+','+cidr['region']+','+cidr['service']+','+cidr['network_border_group']+',-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-\n')
+            for ip in cidr['ip_prefix']:
+                netrange = ipaddress.IPv4Network(ip)
+                first, last = netrange[0], netrange[-1]
+                firstip = int(ipaddress.IPv4Address(first))
+                lastip = int(ipaddress.IPv4Address(last))
+                f.write(os.environ['SOURCE']+','+now+','+ip+','+str(firstip)+','+str(lastip)+','+cidr['region']+',-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-\n')
 
         f.close()
 
