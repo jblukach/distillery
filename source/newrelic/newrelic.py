@@ -15,7 +15,7 @@ def handler(event, context):
     now = f'{year}-{month}-{day}T{hour}:{minute}Z'
 
     headers = {'User-Agent': 'Distillery (https://github.com/jblukach/distillery)'}
-    r = requests.get('https://ip-ranges.amazonaws.com/ip-ranges.json', headers=headers)
+    r = requests.get('https://s3.amazonaws.com/nr-synthetics-assets/nat-ip-dnsname/production/ip-ranges.json', headers=headers)
     print('Download Status Code: '+str(r.status_code))
 
     if r.status_code == 200:
@@ -23,21 +23,24 @@ def handler(event, context):
         f = open('/tmp/'+os.environ['SOURCE']+'.csv', 'w')
         f.write('A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z\n')
 
-        output = r.json()
+        data = r.json()
 
-        for cidr in output['prefixes']:
-            netrange = ipaddress.IPv4Network(cidr['ip_prefix'])
-            first, last = netrange[0], netrange[-1]
-            firstip = int(ipaddress.IPv4Address(first))
-            lastip = int(ipaddress.IPv4Address(last))
-            f.write(os.environ['SOURCE']+','+now+','+cidr['ip_prefix']+','+str(firstip)+','+str(lastip)+','+cidr['region']+','+cidr['service']+','+cidr['network_border_group']+',-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-\n')
-
-        for cidr in output['ipv6_prefixes']:
-            netrange = ipaddress.IPv6Network(cidr['ipv6_prefix'])
-            first, last = netrange[0], netrange[-1]
-            firstip = int(ipaddress.IPv6Address(first))
-            lastip = int(ipaddress.IPv6Address(last))
-            f.write(os.environ['SOURCE']+','+now+','+cidr['ipv6_prefix']+','+str(firstip)+','+str(lastip)+','+cidr['region']+','+cidr['service']+','+cidr['network_border_group']+',-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-\n')
+        for key, value in data.items():
+            key = key.replace(',', '')
+            for v in value:
+                hostmask = v.split('/')
+                iptype = ipaddress.ip_address(hostmask[0])
+                if iptype.version == 4:
+                    netrange = ipaddress.IPv4Network(v)
+                    first, last = netrange[0], netrange[-1]
+                    firstip = int(ipaddress.IPv4Address(first))
+                    lastip = int(ipaddress.IPv4Address(last))
+                elif iptype.version == 6:
+                    netrange = ipaddress.IPv6Network(v)
+                    first, last = netrange[0], netrange[-1]
+                    firstip = int(ipaddress.IPv6Address(first))
+                    lastip = int(ipaddress.IPv6Address(last))
+                f.write(os.environ['SOURCE']+','+now+','+v+','+str(firstip)+','+str(lastip)+','+key+',-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-\n')
 
         f.close()
 
