@@ -15,7 +15,7 @@ def handler(event, context):
     now = f'{year}-{month}-{day}T{hour}:{minute}Z'
 
     headers = {'User-Agent': 'Distillery (https://github.com/jblukach/distillery)'}
-    r = requests.get('https://ip-ranges.amazonaws.com/ip-ranges.json', headers=headers)
+    r = requests.get('https://geofeed.constant.com/?json', headers=headers)
     print('Download Status Code: '+str(r.status_code))
 
     if r.status_code == 200:
@@ -25,19 +25,20 @@ def handler(event, context):
 
         output = r.json()
 
-        for cidr in output['prefixes']:
-            netrange = ipaddress.IPv4Network(cidr['ip_prefix'])
-            first, last = netrange[0], netrange[-1]
-            firstip = int(ipaddress.IPv4Address(first))
-            lastip = int(ipaddress.IPv4Address(last))
-            f.write(os.environ['SOURCE']+','+now+','+cidr['ip_prefix']+','+str(firstip)+','+str(lastip)+','+cidr['region']+','+cidr['service']+','+cidr['network_border_group']+',-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-\n')
-
-        for cidr in output['ipv6_prefixes']:
-            netrange = ipaddress.IPv6Network(cidr['ipv6_prefix'])
-            first, last = netrange[0], netrange[-1]
-            firstip = int(ipaddress.IPv6Address(first))
-            lastip = int(ipaddress.IPv6Address(last))
-            f.write(os.environ['SOURCE']+','+now+','+cidr['ipv6_prefix']+','+str(firstip)+','+str(lastip)+','+cidr['region']+','+cidr['service']+','+cidr['network_border_group']+',-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-\n')
+        for subnet in output['subnets']:
+            hostmask = subnet['ip_prefix'].split('/')
+            iptype = ipaddress.ip_address(hostmask[0])
+            if iptype.version == 4:
+                netrange = ipaddress.IPv4Network(subnet['ip_prefix'])
+                first, last = netrange[0], netrange[-1]
+                firstip = int(ipaddress.IPv4Address(first))
+                lastip = int(ipaddress.IPv4Address(last))
+            elif iptype.version == 6:
+                netrange = ipaddress.IPv6Network(subnet['ip_prefix'])
+                first, last = netrange[0], netrange[-1]
+                firstip = int(ipaddress.IPv6Address(first))
+                lastip = int(ipaddress.IPv6Address(last))
+            f.write(os.environ['SOURCE']+','+now+','+subnet['ip_prefix']+','+str(firstip)+','+str(lastip)+','+subnet['region']+',-,'+subnet['city'].replace(',',' ')+',-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-\n')
 
         f.close()
 
