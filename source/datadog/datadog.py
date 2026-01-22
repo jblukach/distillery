@@ -25,19 +25,23 @@ def handler(event, context):
 
         output = r.json()
 
-        for cidr in output['prefixes']:
-            netrange = ipaddress.IPv4Network(cidr['ip_prefix'])
-            first, last = netrange[0], netrange[-1]
-            firstip = int(ipaddress.IPv4Address(first))
-            lastip = int(ipaddress.IPv4Address(last))
-            f.write(os.environ['SOURCE']+','+now+','+cidr['ip_prefix']+','+str(firstip)+','+str(lastip)+','+cidr['region']+','+cidr['service']+','+cidr['network_border_group']+',-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-\n')
+        for key,value in r.json().items():
 
-        for cidr in output['ipv6_prefixes']:
-            netrange = ipaddress.IPv6Network(cidr['ipv6_prefix'])
-            first, last = netrange[0], netrange[-1]
-            firstip = int(ipaddress.IPv6Address(first))
-            lastip = int(ipaddress.IPv6Address(last))
-            f.write(os.environ['SOURCE']+','+now+','+cidr['ipv6_prefix']+','+str(firstip)+','+str(lastip)+','+cidr['region']+','+cidr['service']+','+cidr['network_border_group']+',-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-\n')
+            if key != 'version' and key != 'modified':
+
+                for cidr in r.json()[key]['prefixes_ipv4']:
+                    netrange = ipaddress.IPv4Network(cidr)
+                    first, last = netrange[0], netrange[-1]
+                    firstip = int(ipaddress.IPv4Address(first))
+                    lastip = int(ipaddress.IPv4Address(last))
+                    f.write(os.environ['SOURCE']+','+now+','+cidr+','+str(firstip)+','+str(lastip)+',-,'+key+',-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-\n')
+
+                for cidr in r.json()[key]['prefixes_ipv6']:
+                    netrange = ipaddress.IPv6Network(cidr)
+                    first, last = netrange[0], netrange[-1]
+                    firstip = int(ipaddress.IPv6Address(first))
+                    lastip = int(ipaddress.IPv6Address(last))
+                    f.write(os.environ['SOURCE']+','+now+','+cidr+','+str(firstip)+','+str(lastip)+',-,'+key+',-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-\n')
 
         f.close()
 
