@@ -71,8 +71,8 @@ class DistilleryStackUsw2(Stack):
             architecture = _lambda.Architecture.ARM_64,
             code = _lambda.Code.from_asset('cidr'),
             handler = 'cidr.handler',
-            timeout = Duration.seconds(7),
-            memory_size = 128,
+            timeout = Duration.seconds(30),
+            memory_size = 256,
             role = role
         )
 
